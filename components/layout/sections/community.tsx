@@ -1,12 +1,6 @@
-import DiscordIcon from "@/components/icons/discord-icon";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import DiscordIcon from '@/components/icons/discord-icon';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const CommunitySection = () => {
   return (
@@ -27,8 +21,8 @@ export const CommunitySection = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="lg:w-[80%] text-xl text-muted-foreground">
-              Join our vibrant Discord community! Connect, share, and grow with
-              like-minded enthusiasts. Click to dive in! 🚀
+              Join our vibrant Discord community! Connect, share, and grow with like-minded
+              enthusiasts. Click to dive in! 🚀
             </CardContent>
 
             <CardFooter>

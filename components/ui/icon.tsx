@@ -1,4 +1,4 @@
-import { icons } from "lucide-react";
+import { icons } from 'lucide-react';
 
 export const Icon = ({
   name,

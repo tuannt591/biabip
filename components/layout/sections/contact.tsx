@@ -1,14 +1,9 @@
-"use client";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Building2, Clock, Mail, Phone } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+'use client';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Building2, Clock, Mail, Phone } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
   FormControl,
@@ -16,17 +11,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   firstName: z.string().min(2).max(255),
@@ -40,11 +35,11 @@ export const ContactSection = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      subject: "Web Development",
-      message: "",
+      firstName: '',
+      lastName: '',
+      email: '',
+      subject: 'Web Development',
+      message: '',
     },
   });
 
@@ -62,15 +57,13 @@ export const ContactSection = () => {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <div className="mb-4">
-            <h2 className="text-lg text-primary mb-2 tracking-wider">
-              Contact
-            </h2>
+            <h2 className="text-lg text-primary mb-2 tracking-wider">Contact</h2>
 
             <h2 className="text-3xl md:text-4xl font-bold">Connect With Us</h2>
           </div>
           <p className="mb-8 text-muted-foreground lg:w-5/6">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum
-            ipsam sint enim exercitationem ex autem corrupti quas tenetur
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum ipsam sint enim
+            exercitationem ex autem corrupti quas tenetur
           </p>
 
           <div className="flex flex-col gap-4">
@@ -119,10 +112,7 @@ export const ContactSection = () => {
           <CardHeader className="text-primary text-2xl"> </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="grid w-full gap-4"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="grid w-full gap-4">
                 <div className="flex flex-col md:!flex-row gap-8">
                   <FormField
                     control={form.control}
@@ -160,11 +150,7 @@ export const ContactSection = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="leomirandadev@gmail.com"
-                            {...field}
-                          />
+                          <Input type="email" placeholder="leomirandadev@gmail.com" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -179,29 +165,18 @@ export const ContactSection = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Subject</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a subject" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Web Development">
-                              Web Development
-                            </SelectItem>
-                            <SelectItem value="Mobile Development">
-                              Mobile Development
-                            </SelectItem>
-                            <SelectItem value="Figma Design">
-                              Figma Design
-                            </SelectItem>
+                            <SelectItem value="Web Development">Web Development</SelectItem>
+                            <SelectItem value="Mobile Development">Mobile Development</SelectItem>
+                            <SelectItem value="Figma Design">Figma Design</SelectItem>
                             <SelectItem value="REST API">REST API</SelectItem>
-                            <SelectItem value="FullStack Project">
-                              FullStack Project
-                            </SelectItem>
+                            <SelectItem value="FullStack Project">FullStack Project</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

@@ -1,10 +1,10 @@
-"use client";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { useTheme } from "next-themes";
-import Image from "next/image";
-import Link from "next/link";
+'use client';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export const HeroSection = () => {
   const { theme } = useTheme();
@@ -40,15 +40,8 @@ export const HeroSection = () => {
               <ArrowRight className="size-5 ml-2 group-hover/arrow:translate-x-1 transition-transform" />
             </Button>
 
-            <Button
-              asChild
-              variant="secondary"
-              className="w-5/6 md:w-1/4 font-bold"
-            >
-              <Link
-                href="https://github.com/nobruf/shadcn-landing-page.git"
-                target="_blank"
-              >
+            <Button asChild variant="secondary" className="w-5/6 md:w-1/4 font-bold">
+              <Link href="https://github.com/nobruf/shadcn-landing-page.git" target="_blank">
                 Github respository
               </Link>
             </Button>
@@ -61,11 +54,7 @@ export const HeroSection = () => {
             width={1200}
             height={1200}
             className="w-full md:w-[1200px] mx-auto rounded-lg relative rouded-lg leading-none flex items-center border border-t-2 border-secondary  border-t-primary/30"
-            src={
-              theme === "light"
-                ? "/hero-image-light.jpeg"
-                : "/hero-image-dark.jpeg"
-            }
+            src={theme === 'light' ? '/hero-image-light.jpeg' : '/hero-image-dark.jpeg'}
             alt="dashboard"
           />
 

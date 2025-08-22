@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 function GithubIcon(props: React.SVGProps<SVGSVGElement> | undefined) {
   return (
