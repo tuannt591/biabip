@@ -1,6 +1,7 @@
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useRequireLogin } from '@/lib/useRequireLogin';
 import { ArrowRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
@@ -8,6 +9,8 @@ import Link from 'next/link';
 
 export const HeroSection = () => {
   const { theme } = useTheme();
+  useRequireLogin();
+
   return (
     <section className="container w-full">
       <div className="grid place-items-center lg:max-w-screen-xl gap-8 mx-auto py-20 md:py-32">
