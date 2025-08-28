@@ -18,11 +18,28 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 import OtpForm from './otp-form';
 
+const phoneRegex = new RegExp(
+  /^(\+?84|0)?(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5,9]|89|9[0-9])[0-9]{7}$/
+);
+
 const formSchema = z.object({
-  phone: z.string().min(10, { message: 'Enter a valid phone number' })
+  phone: z.string().regex(phoneRegex, 'Invalid phone number!')
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
+
+const formatPhoneNumber = (phone: string): string => {
+  if (phone.startsWith('+84')) {
+    return phone.substring(1);
+  }
+  if (phone.startsWith('84')) {
+    return phone;
+  }
+  if (phone.startsWith('0')) {
+    return `84${phone.substring(1)}`;
+  }
+  return `84${phone}`;
+};
 
 export default function UserAuthForm() {
   const searchParams = useSearchParams();
@@ -34,14 +51,16 @@ export default function UserAuthForm() {
   };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
-    defaultValues
+    defaultValues,
+    mode: 'onChange'
   });
 
   const onSubmit = async (data: UserFormValue) => {
     startTransition(async () => {
       try {
-        await getOtp(data.phone);
-        setPhone(data.phone);
+        const formattedPhone = formatPhoneNumber(data.phone);
+        await getOtp(formattedPhone);
+        setPhone(formattedPhone);
         toast.success('OTP has been sent to your phone!');
       } catch (error) {
         toast.error('Failed to send OTP. Please try again.');
@@ -57,7 +76,7 @@ export default function UserAuthForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className='w-full space-y-2'
+            className='w-full space-y-4'
           >
             <FormField
               control={form.control}
@@ -66,12 +85,20 @@ export default function UserAuthForm() {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input
-                      type='tel'
-                      placeholder='Enter your phone number...'
-                      disabled={loading}
-                      {...field}
-                    />
+                    <div className='relative'>
+                      <div className='pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3'>
+                        <span className='text-muted-foreground text-lg'>
+                          +84
+                        </span>
+                      </div>
+                      <Input
+                        type='tel'
+                        placeholder='32 123 4567'
+                        disabled={loading}
+                        className='h-12 pl-14 text-lg'
+                        {...field}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -79,8 +106,8 @@ export default function UserAuthForm() {
             />
 
             <Button
-              disabled={loading}
-              className='mt-2 ml-auto w-full'
+              disabled={loading || !form.formState.isValid}
+              className='mt-4 ml-auto h-12 w-full text-lg'
               type='submit'
             >
               Continue With Phone
