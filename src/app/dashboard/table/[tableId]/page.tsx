@@ -1,55 +1,101 @@
 'use client';
 
 import PageContainer from '@/components/layout/page-container';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
 import { Heading } from '@/components/ui/heading';
-import { getBatchUsers, getTableById } from '@/lib/auth';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import {
+  getBatchUsers,
+  getTableById,
+  transferPoints,
+  updateUser
+} from '@/lib/auth';
 import { useAuthStore } from '@/stores/auth';
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import {
+  IconPencil,
+  IconArrowRight,
+  IconCopy,
+  IconQrcode,
+  IconUsers,
+  IconArrowLeft
+} from '@tabler/icons-react';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import QRCode from 'qrcode';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Page() {
   const params = useParams();
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, login } = useAuthStore();
+  const { t } = useLanguage();
   const [table, setTable] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<any>(null);
+  const [editingPlayerName, setEditingPlayerName] = useState('');
+  const [isUpdating, startUpdateTransition] = useTransition();
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
+  const [transferAmount, setTransferAmount] = useState('');
+  const [isTransferring, startTransferTransition] = useTransition();
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+
+  const fetchTableAndPlayers = async () => {
+    if (user?.token && params.tableId) {
+      try {
+        setLoading(true);
+        const tableData = await getTableById(
+          params.tableId as string,
+          user.token
+        );
+
+        if (tableData?.players?.length > 0) {
+          const playerIds = tableData.players.map((p: any) => p.id);
+          const batchUsersResponse = await getBatchUsers(playerIds, user.token);
+          const usersFromBatch = batchUsersResponse.data || [];
+
+          const enrichedPlayers = tableData.players.map((player: any) => {
+            const userInfo = usersFromBatch.find(
+              (u: any) => u.id === player.id
+            );
+            return { ...player, ...userInfo };
+          });
+
+          setTable({ ...tableData, players: enrichedPlayers });
+        } else {
+          setTable(tableData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch table or players', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchTableAndPlayers = async () => {
-      if (user?.token && params.tableId) {
-        try {
-          setLoading(true);
-          const tableData = await getTableById(
-            params.tableId as string,
-            user.token
-          );
-
-          if (tableData?.players?.length > 0) {
-            const playerIds = tableData.players.map((p: any) => p.id);
-            const batchUsersResponse = await getBatchUsers(
-              playerIds,
-              user.token
-            );
-            const usersFromBatch = batchUsersResponse.data || [];
-
-            const enrichedPlayers = tableData.players.map((player: any) => {
-              const userInfo = usersFromBatch.find(
-                (u: any) => u.id === player.id
-              );
-              return { ...player, username: userInfo?.name || player.id };
-            });
-            setTable({ ...tableData, players: enrichedPlayers });
-          } else {
-            setTable(tableData);
-          }
-        } catch (error) {
-          console.error('Failed to fetch table or players', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
     if (user) {
       fetchTableAndPlayers();
     } else {
@@ -57,10 +103,93 @@ export default function Page() {
     }
   }, [user, params.tableId]);
 
+  const handleEditClick = (player: any) => {
+    setEditingPlayer(player);
+    setEditingPlayerName(player.name);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdatePlayerName = async () => {
+    if (!editingPlayer) return;
+
+    startUpdateTransition(async () => {
+      try {
+        await updateUser(editingPlayerName, user.token);
+        toast.success(t('messages.nameUpdatedSuccessfully'));
+
+        const updatedPlayers = table.players.map((p: any) =>
+          p.id === editingPlayer.id ? { ...p, name: editingPlayerName } : p
+        );
+        setTable({ ...table, players: updatedPlayers });
+
+        if (editingPlayer.id === user.id) {
+          login({ ...user, name: editingPlayerName });
+        }
+
+        setEditDialogOpen(false);
+        setEditingPlayer(null);
+      } catch (error) {
+        toast.error(t('messages.failedToUpdateName'));
+      }
+    });
+  };
+
+  const handleTransfer = async () => {
+    if (!selectedPlayer || !transferAmount) {
+      toast.error(t('messages.pleaseSelectPlayerAndAmount'));
+      return;
+    }
+
+    startTransferTransition(async () => {
+      try {
+        await transferPoints(
+          params.tableId as string,
+          user.id,
+          selectedPlayer.id,
+          Number(transferAmount),
+          user.token
+        );
+        toast.success(t('messages.pointsTransferredSuccessfully'));
+        setSelectedPlayer(null);
+        setTransferAmount('');
+        fetchTableAndPlayers(); // Refresh data
+      } catch (error) {
+        toast.error(t('messages.failedToTransferPoints'));
+      }
+    });
+  };
+
+  const handleCopyTableId = async () => {
+    try {
+      await navigator.clipboard.writeText(table.id);
+      toast.success(t('messages.tableIdCopied'));
+    } catch (error) {
+      toast.error(t('messages.failedToCopyTableId'));
+    }
+  };
+
+  const handleShowQrCode = async () => {
+    try {
+      const joinUrl = `${window.location.origin}/dashboard/table/${table.id}`;
+      const qrCodeDataUrl = await QRCode.toDataURL(joinUrl, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+      setQrCodeUrl(qrCodeDataUrl);
+      setQrDialogOpen(true);
+    } catch (error) {
+      toast.error(t('messages.failedToGenerateQrCode'));
+    }
+  };
+
   if (loading) {
     return (
       <PageContainer>
-        <div>Loading...</div>
+        <div>{t('common.loading')}</div>
       </PageContainer>
     );
   }
@@ -68,7 +197,7 @@ export default function Page() {
   if (!table) {
     return (
       <PageContainer>
-        <div>Table not found or failed to load.</div>
+        <div>{t('table.tableNotFound')}</div>
       </PageContainer>
     );
   }
@@ -76,21 +205,235 @@ export default function Page() {
   return (
     <PageContainer scrollable>
       <div className='flex-1 space-y-6'>
-        <Heading title={table.name} description={`Table ID: ${table.id}`} />
-        <Card>
-          <CardHeader>
-            <CardTitle>Players</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className='space-y-4'>
-              {table.players.map((player: any) => (
-                <li key={player.id} className='flex items-center'>
-                  <span className='font-medium'>{player.username}</span>
-                </li>
-              ))}
-            </ul>
+        <div className='flex items-center gap-3'>
+          {/* Back Button */}
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => router.push('/dashboard/table')}
+          >
+            <IconArrowLeft className='h-4 w-4' />
+          </Button>
+
+          <Heading
+            title={table.name}
+            description={`${t('table.tableId')}: ${table.id}`}
+          />
+        </div>
+
+        {/* Invite Players Section */}
+        <Card className='py-4'>
+          <CardContent className='px-4'>
+            <div className='mb-4 flex items-center gap-3'>
+              <IconUsers className='h-5 w-5 text-blue-600' />
+              <h3 className='text-lg font-semibold'>
+                {t('table.invitePlayers')}
+              </h3>
+            </div>
+            <p className='text-muted-foreground mb-4 text-sm'>
+              {t('table.inviteDescription')}
+            </p>
+            <div className='flex flex-col gap-3 sm:flex-row'>
+              <Button
+                variant='outline'
+                onClick={handleCopyTableId}
+                className='flex items-center gap-2'
+              >
+                <IconCopy className='h-4 w-4' />
+                {t('table.copyTableId')}
+              </Button>
+              <Button
+                variant='outline'
+                onClick={handleShowQrCode}
+                className='flex items-center gap-2'
+              >
+                <IconQrcode className='h-4 w-4' />
+                {t('table.showQrCode')}
+              </Button>
+            </div>
           </CardContent>
         </Card>
+        <Card className='py-2'>
+          <CardContent className='px-2'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('table.player')}</TableHead>
+                  <TableHead className='text-center'>
+                    {t('table.point')}
+                  </TableHead>
+                  <TableHead className='text-center'>
+                    {t('table.transfer')}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {table.players.map((player: any) => (
+                  <TableRow key={player.id}>
+                    <TableCell>
+                      <div className='flex items-center gap-1'>
+                        <span className='font-medium'>{player.name}</span>
+                        {user.id === player.id && (
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => handleEditClick(player)}
+                          >
+                            <IconPencil className='h-4 w-4' />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className='text-center'>
+                      <span
+                        className={`font-medium ${
+                          (player.points || 0) > 0
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {player.points || 0}
+                      </span>
+                    </TableCell>
+                    <TableCell className='text-center'>
+                      {player.id !== user.id && (
+                        <Dialog
+                          onOpenChange={(isOpen) => {
+                            if (!isOpen) setSelectedPlayer(null);
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant='ghost'
+                              size='icon'
+                              onClick={() => setSelectedPlayer(player)}
+                            >
+                              <IconArrowRight className='h-4 w-4 text-blue-600' />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>
+                                {t('table.transferPoints')}
+                              </DialogTitle>
+                              <DialogDescription>
+                                {t('table.transferTo', {
+                                  name: selectedPlayer?.name
+                                })}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className='space-y-4 py-4'>
+                              <div className='space-y-2'>
+                                <Label htmlFor='amount'>
+                                  {t('table.amount')}
+                                </Label>
+                                <Input
+                                  id='amount'
+                                  type='number'
+                                  value={transferAmount}
+                                  onChange={(e) =>
+                                    setTransferAmount(e.target.value)
+                                  }
+                                  placeholder={t('table.enterAmount')}
+                                />
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                onClick={handleTransfer}
+                                disabled={isTransferring}
+                              >
+                                {isTransferring
+                                  ? t('table.transferring')
+                                  : t('table.confirmTransfer')}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Edit Name Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('table.editName')}</DialogTitle>
+              <DialogDescription>
+                {t('table.updateDisplayName')}
+              </DialogDescription>
+            </DialogHeader>
+            <div className='space-y-4 py-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='name'>{t('table.name')}</Label>
+                <Input
+                  id='name'
+                  value={editingPlayerName}
+                  onChange={(e) => setEditingPlayerName(e.target.value)}
+                  placeholder={t('table.enterName')}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setEditDialogOpen(false)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button onClick={handleUpdatePlayerName} disabled={isUpdating}>
+                {isUpdating ? t('table.saving') : t('table.saveChanges')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* QR Code Dialog */}
+        <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+          <DialogContent className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle className='flex items-center gap-2'>
+                <IconQrcode className='h-5 w-5' />
+                {t('table.joinTableQrCode')}
+              </DialogTitle>
+              <DialogDescription>{t('table.scanQrCode')}</DialogDescription>
+            </DialogHeader>
+            <div className='flex justify-center py-6'>
+              {qrCodeUrl && (
+                <div className='rounded-lg border-2 border-gray-200 bg-white p-4'>
+                  <Image
+                    src={qrCodeUrl}
+                    alt='Table QR Code'
+                    width={256}
+                    height={256}
+                    className='h-64 w-64'
+                  />
+                </div>
+              )}
+            </div>
+            <div className='space-y-2 text-center'>
+              <p className='text-muted-foreground text-sm'>
+                {t('table.title')}:{' '}
+                <span className='font-medium'>{table.name}</span>
+              </p>
+              <p className='text-muted-foreground text-xs'>ID: {table.id}</p>
+            </div>
+            <DialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setQrDialogOpen(false)}
+                className='w-full'
+              >
+                {t('common.close')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageContainer>
   );

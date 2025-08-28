@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import QrCodeScanner from '@/components/qr-code-scanner';
 import { useAuthStore } from '@/stores/auth';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { IconQrcode } from '@tabler/icons-react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
   const router = useRouter();
   const [tableName, setTableName] = useState('');
   const [tableId, setTableId] = useState('');
@@ -38,76 +40,85 @@ export default function Page() {
 
   const handleCreateTable = async () => {
     if (!user?.token) {
-      toast.error('Authentication token not found.');
+      toast.error(t('messages.authTokenNotFound'));
       return;
     }
     if (!tableName) {
-      toast.error('Table name cannot be empty.');
+      toast.error(t('messages.tableNameCannotBeEmpty'));
       return;
     }
 
     startCreateTransition(async () => {
       try {
         const newTable = await createTable(tableName, user.token);
-        toast.success('Table created successfully!');
+        toast.success(t('messages.tableCreatedSuccessfully'));
         router.push(`/dashboard/table/${newTable.id}`);
       } catch (error) {
-        toast.error('Failed to create table. Please try again.');
+        toast.error(t('messages.failedToCreateTable'));
       }
     });
   };
 
   const handleJoinTable = async () => {
     if (!user?.token || !user?.id) {
-      toast.error('User information is missing.');
+      toast.error(t('messages.userInfoMissing'));
       return;
     }
     if (!tableId) {
-      toast.error('Table ID cannot be empty.');
+      toast.error(t('messages.tableIdCannotBeEmpty'));
       return;
     }
 
     startJoinTransition(async () => {
       try {
         await joinTable(tableId, user.id, user.token);
-        toast.success('Successfully joined table!');
+        toast.success(t('messages.successfullyJoinedTable'));
         router.push(`/dashboard/table/${tableId}`);
       } catch (error) {
-        toast.error('Failed to join table. Please check the ID and try again.');
+        toast.error(t('messages.failedToJoinTable'));
       }
     });
   };
 
   const onScanSuccess = (decodedText: string) => {
-    setTableId(decodedText);
+    // Extract table ID from URL if it's a full URL
+    let extractedTableId = decodedText;
+    if (decodedText.includes('/table/')) {
+      const urlParts = decodedText.split('/table/');
+      extractedTableId = urlParts[1] || decodedText;
+    }
+
+    setTableId(extractedTableId);
     setScannerOpen(false);
-    toast.success('QR code scanned successfully!');
+    toast.success(t('messages.qrCodeScannedSuccessfully'));
   };
 
   return (
     <PageContainer>
       <div className='w-full space-y-6 p-4 md:mx-auto md:max-w-2xl'>
         <Heading
-          title='Table Management'
-          description='Manage your tables and profile'
+          title={t('tableManagement.title')}
+          description={t('tableManagement.description')}
         />
         <div className='flex flex-col gap-6'>
           {/* Create Table Section */}
           <Card className='w-full'>
             <CardHeader>
-              <CardTitle>Create a New Table</CardTitle>
+              <CardTitle>{t('tableManagement.createNewTable')}</CardTitle>
               <CardDescription>
-                Start a new table and invite your friends to join.
+                {t('tableManagement.createDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='space-y-2'>
-                <Label htmlFor='tableName'>Table Name</Label>
+                <Label htmlFor='tableName'>
+                  {t('tableManagement.tableName')}
+                </Label>
                 <Input
                   id='tableName'
                   value={tableName}
                   onChange={(e) => setTableName(e.target.value)}
-                  placeholder='Enter a name for your table'
+                  placeholder={t('tableManagement.enterTableName')}
                   className='h-12'
                 />
               </div>
@@ -116,7 +127,9 @@ export default function Page() {
                 className='h-12 w-full'
                 disabled={isCreating}
               >
-                {isCreating ? 'Creating...' : 'Create Table'}
+                {isCreating
+                  ? t('tableManagement.creating')
+                  : t('tableManagement.createTable')}
               </Button>
             </CardContent>
           </Card>
@@ -124,26 +137,51 @@ export default function Page() {
           {/* Join Table Section */}
           <Card className='w-full'>
             <CardHeader>
-              <CardTitle>Join an Existing Table</CardTitle>
+              <CardTitle>{t('tableManagement.joinExistingTable')}</CardTitle>
               <CardDescription>
-                Enter a table ID or scan a QR code to join a game.
+                {t('tableManagement.joinDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='space-y-2'>
                 <div className='flex items-center justify-between'>
-                  <Label htmlFor='tableId'>Table ID</Label>
+                  <Label htmlFor='tableId'>
+                    {t('tableManagement.tableId')}
+                  </Label>
                   <Dialog open={isScannerOpen} onOpenChange={setScannerOpen}>
                     <DialogTrigger asChild>
-                      <Button variant='outline' size='icon'>
+                      <Button
+                        variant='outline'
+                        size='icon'
+                        className='shrink-0'
+                      >
                         <IconQrcode className='h-4 w-4' />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className='sm:max-w-lg'>
                       <DialogHeader>
-                        <DialogTitle>Scan QR Code</DialogTitle>
+                        <DialogTitle className='flex items-center gap-2'>
+                          <IconQrcode className='h-5 w-5 text-blue-600' />
+                          {t('tableManagement.scanQrCode')}
+                        </DialogTitle>
                       </DialogHeader>
-                      <QrCodeScanner onScanSuccess={onScanSuccess} />
+
+                      {/* Hướng dẫn cho mobile */}
+                      <div className='mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3'>
+                        <p className='text-sm text-blue-800'>
+                          📱 <strong>Lưu ý trên điện thoại:</strong>
+                          <br />• Đảm bảo đã cấp quyền camera trong cài đặt
+                          trình duyệt
+                          <br />• Nếu không quét được, vui lòng nhập ID bàn thủ
+                          công bên dưới
+                        </p>
+                      </div>
+
+                      <div className='py-2'>
+                        {isScannerOpen && (
+                          <QrCodeScanner onScanSuccess={onScanSuccess} />
+                        )}
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -151,7 +189,7 @@ export default function Page() {
                   id='tableId'
                   value={tableId}
                   onChange={(e) => setTableId(e.target.value)}
-                  placeholder='Enter the table ID'
+                  placeholder={t('tableManagement.enterTableId')}
                   className='h-12'
                 />
               </div>
@@ -160,7 +198,9 @@ export default function Page() {
                 className='h-12 w-full'
                 disabled={isJoining}
               >
-                {isJoining ? 'Joining...' : 'Join Table'}
+                {isJoining
+                  ? t('tableManagement.joining')
+                  : t('tableManagement.joinTable')}
               </Button>
             </CardContent>
           </Card>

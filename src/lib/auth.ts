@@ -200,3 +200,29 @@ export const joinTable = async (
 
   return response.json();
 };
+
+export const transferPoints = async (
+  tableId: string,
+  fromUserId: string,
+  toPlayerId: string,
+  amount: number,
+  token: string
+) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BIABIP_API_URL}/api/tables/${tableId}/players/${fromUserId}/transfer`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ toPlayerId, amount })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to transfer points');
+  }
+
+  return response.json();
+};

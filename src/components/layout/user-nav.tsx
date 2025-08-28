@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/auth';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { IconArrowLeft } from '@tabler/icons-react';
 import Link from 'next/link';
 
 export function UserNav() {

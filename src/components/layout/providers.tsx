@@ -2,6 +2,7 @@
 import { useAuthStore } from '@/stores/auth';
 import React, { useEffect } from 'react';
 import { ActiveThemeProvider } from '../active-theme';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
 export default function Providers({
   activeThemeValue,
@@ -19,9 +20,11 @@ export default function Providers({
 
   return (
     <>
-      <ActiveThemeProvider initialTheme={activeThemeValue}>
-        {children}
-      </ActiveThemeProvider>
+      <LanguageProvider>
+        <ActiveThemeProvider initialTheme={activeThemeValue}>
+          {children}
+        </ActiveThemeProvider>
+      </LanguageProvider>
     </>
   );
 }
