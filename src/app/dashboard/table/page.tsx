@@ -32,11 +32,11 @@ export default async function Page(props: pageProps) {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-start justify-between'>
           <Heading
-            title='Products'
-            description='Manage products (Server side table functionalities.)'
+            title='Table'
+            description='Manage table (Server side table functionalities.)'
           />
           <Link
-            href='/dashboard/product/new'
+            href='/dashboard/table/new'
             className={cn(buttonVariants(), 'text-xs md:text-sm')}
           >
             <IconPlus className='mr-2 h-4 w-4' /> Add New

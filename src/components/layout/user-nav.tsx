@@ -18,7 +18,7 @@ export function UserNav() {
 
   if (!isLoggedIn) {
     return (
-      <Link href='/auth/sign-in'>
+      <Link href='/login'>
         <Button>Log in</Button>
       </Link>
     );
