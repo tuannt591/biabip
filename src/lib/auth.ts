@@ -114,3 +114,89 @@ export const updateUser = async (name: string, token: string) => {
 
   return response.json();
 };
+
+export const getBatchUsers = async (userIds: string[], token: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_USS_API_URL}/users/batch?page=1&page_size=10000`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        users: userIds,
+        project_id: process.env.NEXT_PUBLIC_PROJECT_ID
+      })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get batch users');
+  }
+
+  return response.json();
+};
+
+export const createTable = async (tableName: string, token: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BIABIP_API_URL}/api/tables`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ tableName })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to create table');
+  }
+
+  return response.json();
+};
+
+export const getTableById = async (tableId: string, token: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BIABIP_API_URL}/api/tables/${tableId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get table');
+  }
+
+  return response.json();
+};
+
+export const joinTable = async (
+  tableId: string,
+  userId: string,
+  token: string
+) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BIABIP_API_URL}/api/tables/${tableId}/players`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ userId })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to join table');
+  }
+
+  return response.json();
+};

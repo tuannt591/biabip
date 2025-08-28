@@ -9,55 +9,79 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
 import { Heading } from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import QrCodeScanner from '@/components/qr-code-scanner';
 import { useAuthStore } from '@/stores/auth';
-import { useEffect, useState, useTransition } from 'react';
+import { IconQrcode } from '@tabler/icons-react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { setSession, updateUser } from '@/lib/auth';
+import { createTable, joinTable } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
-  const { user, login } = useAuthStore();
-  const [userName, setUserName] = useState('');
+  const { user } = useAuthStore();
+  const router = useRouter();
   const [tableName, setTableName] = useState('');
   const [tableId, setTableId] = useState('');
-  const [isUpdating, startUpdateTransition] = useTransition();
+  const [isCreating, startCreateTransition] = useTransition();
+  const [isJoining, startJoinTransition] = useTransition();
+  const [isScannerOpen, setScannerOpen] = useState(false);
 
-  useEffect(() => {
-    if (user?.name) {
-      setUserName(user.name);
-    }
-  }, [user]);
-
-  const handleUpdateName = async () => {
+  const handleCreateTable = async () => {
     if (!user?.token) {
       toast.error('Authentication token not found.');
       return;
     }
+    if (!tableName) {
+      toast.error('Table name cannot be empty.');
+      return;
+    }
 
-    startUpdateTransition(async () => {
+    startCreateTransition(async () => {
       try {
-        await updateUser(userName, user.token);
-
-        const updatedUser = { ...user, name: userName };
-        login(updatedUser);
-        setSession(updatedUser);
-        toast.success('Name updated successfully!');
+        const newTable = await createTable(tableName, user.token);
+        toast.success('Table created successfully!');
+        router.push(`/dashboard/table/${newTable.id}`);
       } catch (error) {
-        toast.error('Failed to update name. Please try again.');
+        toast.error('Failed to create table. Please try again.');
       }
     });
   };
 
-  const handleCreateTable = () => {
-    // Logic to create table
-    alert(`Creating table with name: ${tableName}`);
+  const handleJoinTable = async () => {
+    if (!user?.token || !user?.id) {
+      toast.error('User information is missing.');
+      return;
+    }
+    if (!tableId) {
+      toast.error('Table ID cannot be empty.');
+      return;
+    }
+
+    startJoinTransition(async () => {
+      try {
+        await joinTable(tableId, user.id, user.token);
+        toast.success('Successfully joined table!');
+        router.push(`/dashboard/table/${tableId}`);
+      } catch (error) {
+        toast.error('Failed to join table. Please check the ID and try again.');
+      }
+    });
   };
 
-  const handleJoinTable = () => {
-    // Logic to join table
-    alert(`Joining table with ID: ${tableId}`);
+  const onScanSuccess = (decodedText: string) => {
+    setTableId(decodedText);
+    setScannerOpen(false);
+    toast.success('QR code scanned successfully!');
   };
 
   return (
@@ -68,34 +92,6 @@ export default function Page() {
           description='Manage your tables and profile'
         />
         <div className='flex flex-col gap-6'>
-          {/* Update User Name Section */}
-          <Card className='w-full'>
-            <CardHeader>
-              <CardTitle>Update Your Name</CardTitle>
-              <CardDescription>
-                Change your display name that will be shown to other players.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='userName'>Your Name</Label>
-                <Input
-                  id='userName'
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder='Enter your new name'
-                />
-              </div>
-              <Button
-                onClick={handleUpdateName}
-                className='w-full'
-                disabled={isUpdating}
-              >
-                {isUpdating ? 'Updating...' : 'Update Name'}
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* Create Table Section */}
           <Card className='w-full'>
             <CardHeader>
@@ -112,10 +108,15 @@ export default function Page() {
                   value={tableName}
                   onChange={(e) => setTableName(e.target.value)}
                   placeholder='Enter a name for your table'
+                  className='h-12'
                 />
               </div>
-              <Button onClick={handleCreateTable} className='w-full'>
-                Create Table
+              <Button
+                onClick={handleCreateTable}
+                className='h-12 w-full'
+                disabled={isCreating}
+              >
+                {isCreating ? 'Creating...' : 'Create Table'}
               </Button>
             </CardContent>
           </Card>
@@ -125,21 +126,41 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Join an Existing Table</CardTitle>
               <CardDescription>
-                Enter a table ID to join a game.
+                Enter a table ID or scan a QR code to join a game.
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='space-y-2'>
-                <Label htmlFor='tableId'>Table ID</Label>
+                <div className='flex items-center justify-between'>
+                  <Label htmlFor='tableId'>Table ID</Label>
+                  <Dialog open={isScannerOpen} onOpenChange={setScannerOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant='outline' size='icon'>
+                        <IconQrcode className='h-4 w-4' />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Scan QR Code</DialogTitle>
+                      </DialogHeader>
+                      <QrCodeScanner onScanSuccess={onScanSuccess} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <Input
                   id='tableId'
                   value={tableId}
                   onChange={(e) => setTableId(e.target.value)}
                   placeholder='Enter the table ID'
+                  className='h-12'
                 />
               </div>
-              <Button onClick={handleJoinTable} className='w-full'>
-                Join Table
+              <Button
+                onClick={handleJoinTable}
+                className='h-12 w-full'
+                disabled={isJoining}
+              >
+                {isJoining ? 'Joining...' : 'Join Table'}
               </Button>
             </CardContent>
           </Card>
