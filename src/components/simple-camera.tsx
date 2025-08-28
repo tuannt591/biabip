@@ -22,32 +22,84 @@ const SimpleCamera = ({ onError }: SimpleCameraProps) => {
         return;
       }
 
-      const constraints = {
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 640 },
-          height: { ideal: 640 }
+      // Thử các constraint khác nhau cho mobile
+      const constraints = [
+        // Ưu tiên camera sau cho mobile
+        {
+          video: {
+            facingMode: { exact: 'environment' },
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 }
+          }
+        },
+        // Fallback với ideal
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 640, max: 1280 },
+            height: { ideal: 480, max: 720 }
+          }
+        },
+        // Fallback cơ bản
+        {
+          video: {
+            facingMode: 'environment'
+          }
+        },
+        // Fallback cuối - bất kỳ camera nào
+        {
+          video: true
         }
-      };
+      ];
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      let stream: MediaStream | null = null;
+
+      for (const constraint of constraints) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraint);
+          break; // Thành công, thoát khỏi loop
+        } catch (error) {
+          // Constraint failed, trying next one
+          continue; // Thử constraint tiếp theo
+        }
+      }
+
+      if (!stream) {
+        onError('Không thể khởi động camera với bất kỳ cài đặt nào');
+        return;
+      }
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
+
+        // Đợi video load xong
+        await new Promise((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => resolve(true);
+          }
+        });
+
         setIsStreaming(true);
       }
     } catch (error) {
       const err = error as Error;
+      let errorMsg = 'Không thể khởi động camera';
+
       if (err.name === 'NotAllowedError') {
-        onError(
-          'Không có quyền truy cập camera. Vui lòng cấp quyền trong cài đặt trình duyệt.'
-        );
+        errorMsg =
+          'Không có quyền truy cập camera. Vui lòng cấp quyền và tải lại trang.';
       } else if (err.name === 'NotFoundError') {
-        onError('Không tìm thấy camera trên thiết bị');
+        errorMsg = 'Không tìm thấy camera trên thiết bị';
+      } else if (err.name === 'NotReadableError') {
+        errorMsg = 'Camera đang được sử dụng bởi ứng dụng khác';
+      } else if (err.name === 'OverconstrainedError') {
+        errorMsg = 'Camera không hỗ trợ cài đặt yêu cầu';
       } else {
-        onError('Không thể khởi động camera: ' + err.message);
+        errorMsg = 'Lỗi camera: ' + err.message;
       }
+
+      onError(errorMsg);
     }
   };
 
@@ -109,8 +161,21 @@ const SimpleCamera = ({ onError }: SimpleCameraProps) => {
         <p className='text-muted-foreground max-w-xs text-center text-sm'>
           {isStreaming
             ? 'Camera đang hoạt động. Nhập ID bàn thủ công bên dưới.'
-            : 'Camera không khả dụng. Vui lòng nhập ID bàn thủ công.'}
+            : 'Nhấn Start để khởi động camera'}
         </p>
+
+        {!isStreaming && (
+          <div className='text-muted-foreground max-w-xs text-center text-xs'>
+            <p className='mb-1'>
+              <strong>Nếu camera không hoạt động:</strong>
+            </p>
+            <ul className='space-y-1 text-left'>
+              <li>• Kiểm tra quyền camera</li>
+              <li>• Tải lại trang</li>
+              <li>• Đóng ứng dụng camera khác</li>
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

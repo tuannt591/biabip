@@ -19,7 +19,7 @@ import {
 import { Heading } from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import QrCodeScanner from '@/components/qr-code-scanner';
+import SimpleCamera from '@/components/simple-camera';
 import { useAuthStore } from '@/stores/auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { IconQrcode } from '@tabler/icons-react';
@@ -80,17 +80,8 @@ export default function Page() {
     });
   };
 
-  const onScanSuccess = (decodedText: string) => {
-    // Extract table ID from URL if it's a full URL
-    let extractedTableId = decodedText;
-    if (decodedText.includes('/table/')) {
-      const urlParts = decodedText.split('/table/');
-      extractedTableId = urlParts[1] || decodedText;
-    }
-
-    setTableId(extractedTableId);
-    setScannerOpen(false);
-    toast.success(t('messages.qrCodeScannedSuccessfully'));
+  const onCameraError = (error: string) => {
+    toast.error(error);
   };
 
   return (
@@ -179,7 +170,7 @@ export default function Page() {
 
                       <div className='py-2'>
                         {isScannerOpen && (
-                          <QrCodeScanner onScanSuccess={onScanSuccess} />
+                          <SimpleCamera onError={onCameraError} />
                         )}
                       </div>
                     </DialogContent>
