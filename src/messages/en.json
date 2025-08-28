@@ -90,5 +90,12 @@
     "failedToStartCamera": "Failed to start camera",
     "pointCameraToQR": "Point your camera at a QR code to scan",
     "clickStartToScan": "Click start to begin scanning"
+  },
+  "qrScanner": {
+    "scanSuccess": "QR code scanned successfully!",
+    "clickToStart": "Click the button below to start scanning QR codes"
+  },
+  "camera": {
+    "permissionDenied": "Camera permission denied. Please allow camera access in your browser settings."
   }
 }

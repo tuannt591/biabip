@@ -19,7 +19,7 @@ import {
 import { Heading } from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import SimpleCamera from '@/components/simple-camera';
+import QRScanner from '@/components/qr-scanner';
 import { useAuthStore } from '@/stores/auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { IconQrcode } from '@tabler/icons-react';
@@ -82,6 +82,23 @@ export default function Page() {
 
   const onCameraError = (error: string) => {
     toast.error(error);
+  };
+
+  const onQRScanSuccess = (decodedText: string) => {
+    // Extract table ID from QR code (assuming QR code contains just the table ID or URL with table ID)
+    let extractedTableId = decodedText.trim();
+
+    // If QR code contains a URL, extract the table ID from it
+    if (decodedText.includes('/table/')) {
+      const match = decodedText.match(/\/table\/([^/?#]+)/);
+      if (match) {
+        extractedTableId = match[1];
+      }
+    }
+
+    setTableId(extractedTableId);
+    setScannerOpen(false);
+    toast.success(t('qrScanner.scanSuccess') || 'Quét QR thành công!');
   };
 
   return (
@@ -170,7 +187,10 @@ export default function Page() {
 
                       <div className='py-2'>
                         {isScannerOpen && (
-                          <SimpleCamera onError={onCameraError} />
+                          <QRScanner
+                            onScanSuccess={onQRScanSuccess}
+                            onScanError={onCameraError}
+                          />
                         )}
                       </div>
                     </DialogContent>

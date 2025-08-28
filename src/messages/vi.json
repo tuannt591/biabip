@@ -90,5 +90,12 @@
     "failedToStartCamera": "Không thể bật camera",
     "pointCameraToQR": "Hướng camera về phía mã QR để quét",
     "clickStartToScan": "Nhấn bắt đầu để quét mã"
+  },
+  "qrScanner": {
+    "scanSuccess": "Quét mã QR thành công!",
+    "clickToStart": "Nhấn nút bên dưới để bắt đầu quét QR"
+  },
+  "camera": {
+    "permissionDenied": "Không có quyền truy cập camera. Vui lòng cấp quyền camera trong cài đặt trình duyệt."
   }
 }
