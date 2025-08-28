@@ -94,3 +94,23 @@ export const removeSession = () => {
     path: '/'
   });
 };
+
+export const updateUser = async (name: string, token: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_USS_API_URL}/users/update`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ name, about_me: '' })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to update user');
+  }
+
+  return response.json();
+};
