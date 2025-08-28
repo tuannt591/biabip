@@ -52,8 +52,11 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         },
-        rememberLastUsedCamera: true,
-        formatsToSupport: [0] // QR Code format
+        rememberLastUsedCamera: false, // Don't remember last camera to always prefer rear
+        formatsToSupport: [0], // QR Code format
+        videoConstraints: {
+          facingMode: { ideal: 'environment' } // Prefer rear camera
+        }
       },
       false
     );
