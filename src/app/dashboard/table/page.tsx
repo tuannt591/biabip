@@ -175,7 +175,7 @@ export default function Page() {
                       </DialogHeader>
 
                       {/* Hướng dẫn cho mobile */}
-                      <div className='mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3'>
+                      {/* <div className='mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3'>
                         <p className='text-sm text-blue-800'>
                           📱 <strong>Lưu ý trên điện thoại:</strong>
                           <br />• Đảm bảo đã cấp quyền camera trong cài đặt
@@ -183,7 +183,7 @@ export default function Page() {
                           <br />• Nếu không quét được, vui lòng nhập ID bàn thủ
                           công bên dưới
                         </p>
-                      </div>
+                      </div> */}
 
                       <div className='py-2'>
                         {isScannerOpen && (

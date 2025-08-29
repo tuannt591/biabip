@@ -134,24 +134,6 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
           </>
         )}
       </Button>
-
-      {hasPermission === false && (
-        <div className='rounded-lg border border-red-200 bg-red-50 p-3'>
-          <p className='text-sm text-red-800'>
-            ⚠️ <strong>Không có quyền camera:</strong>
-            <br />• Vui lòng cấp quyền camera trong cài đặt trình duyệt
-            <br />• Tải lại trang sau khi cấp quyền
-          </p>
-        </div>
-      )}
-
-      <div className='max-w-sm text-center text-sm text-gray-600'>
-        <p>
-          {isScanning
-            ? 'Hướng camera vào mã QR để quét. Mã QR sẽ được nhận diện tự động.'
-            : 'Đảm bảo mã QR được chiếu sáng tốt và camera có thể nhìn rõ.'}
-        </p>
-      </div>
     </div>
   );
 };
