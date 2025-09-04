@@ -43,7 +43,7 @@ import {
 } from '@tabler/icons-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, useCallback } from 'react';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -71,7 +71,7 @@ export default function Page() {
     useState<any>(null);
   const [allTableHistory, setAllTableHistory] = useState<any[]>([]);
 
-  const fetchTableAndPlayers = async () => {
+  const fetchTableAndPlayers = useCallback(async () => {
     if (user?.token && params.tableId) {
       try {
         setLoading(true);
@@ -127,13 +127,12 @@ export default function Page() {
           setAllTableHistory([]);
         }
       } catch (error) {
-        console.error('Failed to fetch table or players', error);
         setAllTableHistory([]);
       } finally {
         setLoading(false);
       }
     }
-  };
+  }, [user?.token, params.tableId]);
 
   useEffect(() => {
     if (user) {
@@ -141,7 +140,7 @@ export default function Page() {
     } else {
       setLoading(false);
     }
-  }, [user, params.tableId]);
+  }, [user, params.tableId, fetchTableAndPlayers]);
 
   const handleEditClick = (player: any) => {
     setEditingPlayer(player);
