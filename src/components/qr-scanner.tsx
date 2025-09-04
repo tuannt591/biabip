@@ -1,21 +1,27 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeScanType } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { IconCamera, IconCameraOff } from '@tabler/icons-react';
+import { IconCamera, IconCameraOff, IconLoader2 } from '@tabler/icons-react';
 
 interface QRScannerProps {
   onScanSuccess: (decodedText: string) => void;
   onScanError?: (error: string) => void;
+  isProcessing?: boolean; // Thêm prop để hiển thị loading từ bên ngoài
 }
 
-const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
+const QRScanner = ({
+  onScanSuccess,
+  onScanError,
+  isProcessing = false
+}: QRScannerProps) => {
   const { t } = useLanguage();
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [isLoadingQR, setIsLoadingQR] = useState(false); // Loading state riêng cho việc xử lý QR
 
   const startScanner = async () => {
     try {
@@ -57,10 +63,14 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
           },
           aspectRatio: 1.0
         },
-        (decodedText: string) => {
+        async (decodedText: string) => {
           // QR code scan success
-          onScanSuccess(decodedText);
-          stopScanner();
+          setIsLoadingQR(true);
+          try {
+            await onScanSuccess(decodedText);
+          } catch (error) {
+            setIsLoadingQR(false);
+          }
         },
         () => {
           // QR code scan error - usually means no QR code found
@@ -84,6 +94,7 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
       }
     }
     setIsScanning(false);
+    setIsLoadingQR(false); // Reset loading state khi dừng scanner
   };
 
   useEffect(() => {
@@ -100,6 +111,18 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
           className={`absolute top-0 left-0 h-full w-full ${isScanning ? 'visible' : 'invisible'}`}
           style={{ minHeight: '300px', maxWidth: '100%' }}
         />
+
+        {/* Loading overlay khi đang xử lý QR */}
+        {(isLoadingQR || isProcessing) && (
+          <div className='bg-opacity-50 absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center rounded-lg bg-black text-center'>
+            <div className='text-white'>
+              <IconLoader2 className='mx-auto mb-4 h-16 w-16 animate-spin' />
+              <p className='text-sm'>
+                {t('qrScanner.processing') || 'Đang xử lý...'}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div
           className={`absolute top-0 left-0 flex h-full w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-center ${isScanning ? 'invisible' : 'visible'}`}
@@ -119,9 +142,14 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
           variant={isScanning ? 'destructive' : 'default'}
           onClick={isScanning ? stopScanner : startScanner}
           className='flex items-center gap-2'
-          disabled={hasPermission === false}
+          disabled={hasPermission === false || isLoadingQR || isProcessing}
         >
-          {isScanning ? (
+          {isLoadingQR || isProcessing ? (
+            <>
+              <IconLoader2 className='h-4 w-4 animate-spin' />
+              {t('qrScanner.processing') || 'Đang xử lý...'}
+            </>
+          ) : isScanning ? (
             <>
               <IconCameraOff className='h-4 w-4' />
               {t('common.stop') || 'Dừng quét'}

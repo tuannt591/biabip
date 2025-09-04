@@ -48,6 +48,7 @@
     "point": "Point",
     "points": "Points",
     "transfer": "Transfer",
+    "history": "History",
     "invitePlayers": "Invite Players",
     "inviteDescription": "Share the table with other players so they can join and participate.",
     "copyTableId": "Copy Table ID",
@@ -66,7 +67,14 @@
     "saveChanges": "Save Changes",
     "joinTableQrCode": "Join Table QR Code",
     "scanQrCode": "Other players can scan this QR code to join the table directly.",
-    "tableNotFound": "Table not found or failed to load."
+    "tableNotFound": "Table not found or failed to load.",
+    "pointHistory": "Point History",
+    "historyDescription": "View all point transfer transactions for this table.",
+    "from": "From",
+    "to": "To",
+    "date": "Date",
+    "noHistory": "No transaction history yet.",
+    "failedToLoadHistory": "Failed to load history."
   },
   "messages": {
     "tableIdCopied": "Table ID copied to clipboard!",
@@ -94,7 +102,8 @@
   },
   "qrScanner": {
     "scanSuccess": "QR code scanned successfully!",
-    "clickToStart": "Click the button below to start scanning QR codes"
+    "clickToStart": "Click the button below to start scanning QR codes",
+    "processing": "Processing..."
   },
   "camera": {
     "permissionDenied": "Camera permission denied. Please allow camera access in your browser settings."

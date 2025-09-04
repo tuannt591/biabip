@@ -37,6 +37,7 @@ export default function Page() {
   const [isCreating, startCreateTransition] = useTransition();
   const [isJoining, startJoinTransition] = useTransition();
   const [isScannerOpen, setScannerOpen] = useState(false);
+  const [isProcessingQR, setIsProcessingQR] = useState(false); // Loading state cho QR processing
 
   const handleCreateTable = async () => {
     if (!user?.token) {
@@ -96,22 +97,32 @@ export default function Page() {
       }
     }
 
-    setScannerOpen(false);
-
     // Tự động join table ngay khi scan thành công
     if (!user?.token || !user?.id) {
       toast.error(t('messages.userInfoMissing'));
+      setScannerOpen(false);
+      setIsProcessingQR(false);
       return;
     }
+
+    setIsProcessingQR(true);
 
     try {
       await joinTable(extractedTableId, user.id, user.token);
       toast.success(t('messages.successfullyJoinedTable'));
+
+      // Đóng scanner và chuyển hướng
+      setScannerOpen(false);
+
+      // Chuyển đến trang detail
       router.push(`/dashboard/table/${extractedTableId}`);
     } catch (error) {
       toast.error(t('messages.failedToJoinTable'));
       // Nếu join thất bại, vẫn đặt tableId để user có thể thử lại
       setTableId(extractedTableId);
+      setScannerOpen(false);
+    } finally {
+      setIsProcessingQR(false);
     }
   };
 
@@ -204,6 +215,7 @@ export default function Page() {
                           <QRScanner
                             onScanSuccess={onQRScanSuccess}
                             onScanError={onCameraError}
+                            isProcessing={isProcessingQR}
                           />
                         )}
                       </div>

@@ -48,6 +48,7 @@
     "point": "Điểm",
     "points": "Điểm",
     "transfer": "Chuyển",
+    "history": "Lịch sử",
     "invitePlayers": "Mời người chơi",
     "inviteDescription": "Chia sẻ bàn với những người chơi khác để họ có thể tham gia.",
     "copyTableId": "Sao chép ID Bàn",
@@ -66,7 +67,14 @@
     "saveChanges": "Lưu thay đổi",
     "joinTableQrCode": "QR Code tham gia bàn",
     "scanQrCode": "Người chơi khác có thể quét QR code này để tham gia bàn trực tiếp.",
-    "tableNotFound": "Không tìm thấy bàn hoặc tải thất bại."
+    "tableNotFound": "Không tìm thấy bàn hoặc tải thất bại.",
+    "pointHistory": "Lịch sử điểm",
+    "historyDescription": "Xem tất cả giao dịch chuyển điểm của bàn này.",
+    "from": "Từ",
+    "to": "Đến",
+    "date": "Ngày",
+    "noHistory": "Chưa có lịch sử giao dịch.",
+    "failedToLoadHistory": "Không thể tải lịch sử."
   },
   "messages": {
     "tableIdCopied": "Đã sao chép ID bàn vào clipboard!",
@@ -94,7 +102,8 @@
   },
   "qrScanner": {
     "scanSuccess": "Quét mã QR thành công!",
-    "clickToStart": "Nhấn nút bên dưới để bắt đầu quét QR"
+    "clickToStart": "Nhấn nút bên dưới để bắt đầu quét QR",
+    "processing": "Đang xử lý..."
   },
   "camera": {
     "permissionDenied": "Không có quyền truy cập camera. Vui lòng cấp quyền camera trong cài đặt trình duyệt."

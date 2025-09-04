@@ -226,3 +226,22 @@ export const transferPoints = async (
 
   return response.json();
 };
+
+export const getTableHistory = async (tableId: string, token: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BIABIP_API_URL}/api/tables/${tableId}/history`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get table history');
+  }
+
+  return response.json();
+};

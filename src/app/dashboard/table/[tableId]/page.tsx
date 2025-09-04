@@ -27,7 +27,8 @@ import {
   getBatchUsers,
   getTableById,
   transferPoints,
-  updateUser
+  updateUser,
+  getTableHistory
 } from '@/lib/auth';
 import { useAuthStore } from '@/stores/auth';
 import {
@@ -37,7 +38,8 @@ import {
   IconQrcode,
   IconUsers,
   IconArrowLeft,
-  IconRefresh
+  IconRefresh,
+  IconHistory
 } from '@tabler/icons-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -63,15 +65,21 @@ export default function Page() {
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [isRefreshing, startRefreshTransition] = useTransition();
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [tableHistory, setTableHistory] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [selectedPlayerForHistory, setSelectedPlayerForHistory] =
+    useState<any>(null);
+  const [allTableHistory, setAllTableHistory] = useState<any[]>([]);
 
   const fetchTableAndPlayers = async () => {
     if (user?.token && params.tableId) {
       try {
         setLoading(true);
-        const tableData = await getTableById(
-          params.tableId as string,
-          user.token
-        );
+        const [tableData, historyData] = await Promise.all([
+          getTableById(params.tableId as string, user.token),
+          getTableHistory(params.tableId as string, user.token)
+        ]);
 
         if (tableData?.players?.length > 0) {
           const playerIds = tableData.players.map((p: any) => p.id);
@@ -86,11 +94,42 @@ export default function Page() {
           });
 
           setTable({ ...tableData, players: enrichedPlayers });
+
+          // Enrich history with player names
+          const enrichedHistory = (historyData || []).map(
+            (transaction: any) => {
+              const fromPlayer = enrichedPlayers.find(
+                (p: any) => p.id === transaction.fromPlayerId
+              );
+              const toPlayer = enrichedPlayers.find(
+                (p: any) => p.id === transaction.toPlayerId
+              );
+
+              return {
+                ...transaction,
+                fromPlayerName:
+                  fromPlayer?.name || transaction.fromPlayerName || 'Unknown',
+                toPlayerName:
+                  toPlayer?.name || transaction.toPlayerName || 'Unknown'
+              };
+            }
+          );
+
+          // Sort by newest first (descending order)
+          const sortedHistory = enrichedHistory.sort((a: any, b: any) => {
+            const dateA = new Date(a.createdAt || a.timestamp);
+            const dateB = new Date(b.createdAt || b.timestamp);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          setAllTableHistory(sortedHistory);
         } else {
           setTable(tableData);
+          setAllTableHistory([]);
         }
       } catch (error) {
         console.error('Failed to fetch table or players', error);
+        setAllTableHistory([]);
       } finally {
         setLoading(false);
       }
@@ -190,8 +229,31 @@ export default function Page() {
 
   const handleRefresh = () => {
     startRefreshTransition(() => {
-      fetchTableAndPlayers();
+      window.location.reload();
     });
+  };
+
+  const handleViewHistory = async (player: any) => {
+    setSelectedPlayerForHistory(player);
+    setHistoryDialogOpen(true);
+
+    // Filter history from cached data to show only transactions related to selected player
+    const filteredHistory = allTableHistory.filter(
+      (transaction: any) =>
+        transaction.fromPlayerId === player.id ||
+        transaction.toPlayerId === player.id
+    );
+
+    setTableHistory(filteredHistory);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString();
+    } catch (error) {
+      return dateString;
+    }
   };
 
   if (loading) {
@@ -276,6 +338,9 @@ export default function Page() {
                   <TableHead className='text-center'>
                     {t('table.transfer')}
                   </TableHead>
+                  <TableHead className='text-center'>
+                    {t('table.history')}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -341,6 +406,8 @@ export default function Page() {
                                 <Input
                                   id='amount'
                                   type='number'
+                                  inputMode='numeric'
+                                  pattern='[0-9]*'
                                   value={transferAmount}
                                   onChange={(e) =>
                                     setTransferAmount(e.target.value)
@@ -362,6 +429,16 @@ export default function Page() {
                           </DialogContent>
                         </Dialog>
                       )}
+                    </TableCell>
+                    <TableCell className='text-center'>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        onClick={() => handleViewHistory(player)}
+                        title={t('table.pointHistory')}
+                      >
+                        <IconHistory className='h-4 w-4 text-gray-600' />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -443,6 +520,86 @@ export default function Page() {
                 {t('common.close')}
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* History Dialog */}
+        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+          <DialogContent className='sm:max-w-4xl'>
+            <DialogHeader>
+              <DialogTitle className='flex flex-col items-start gap-1'>
+                <div className='flex items-center gap-2'>
+                  <IconHistory className='h-5 w-5' />
+                  {t('table.pointHistory')}
+                </div>
+                <div className='text-muted-foreground text-base font-medium'>
+                  {selectedPlayerForHistory?.name}
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            <div className='max-h-96 overflow-y-auto'>
+              {tableHistory.length > 0 ? (
+                <div className='space-y-3'>
+                  {tableHistory.map((transaction, index) => {
+                    const isCurrentUserSender =
+                      transaction.fromPlayerId === selectedPlayerForHistory?.id;
+                    const isCurrentUserReceiver =
+                      transaction.toPlayerId === selectedPlayerForHistory?.id;
+
+                    return (
+                      <div
+                        key={index}
+                        className='bg-card rounded-lg border p-3'
+                      >
+                        <div className='flex items-center justify-between'>
+                          <div className='flex-1'>
+                            <div className='mb-1 flex items-center gap-2'>
+                              <span className='text-sm font-medium'>
+                                {transaction.fromPlayerName}
+                              </span>
+                              <span className='text-muted-foreground text-xs'>
+                                →
+                              </span>
+                              <span className='text-sm font-medium'>
+                                {transaction.toPlayerName}
+                              </span>
+                            </div>
+                            <div className='text-muted-foreground text-xs'>
+                              {formatDateTime(
+                                transaction.createdAt || transaction.timestamp
+                              )}
+                            </div>
+                          </div>
+                          <div className='text-right'>
+                            <div
+                              className={`font-semibold ${
+                                isCurrentUserSender
+                                  ? 'text-red-600'
+                                  : isCurrentUserReceiver
+                                    ? 'text-green-600'
+                                    : 'text-blue-600'
+                              }`}
+                            >
+                              {isCurrentUserSender ? '-' : '+'}
+                              {transaction.amount}
+                            </div>
+                            <div className='text-muted-foreground text-xs'>
+                              {t('table.points')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className='flex justify-center py-8'>
+                  <div className='text-muted-foreground'>
+                    {t('table.noHistory')}
+                  </div>
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 
