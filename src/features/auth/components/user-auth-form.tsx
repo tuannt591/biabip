@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getOtp } from '@/lib/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -38,8 +37,6 @@ const formatPhoneNumber = (phone: string): string => {
 
 export default function UserAuthForm() {
   const { t } = useLanguage();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
   const [loading, startTransition] = useTransition();
   const [phone, setPhone] = useState('');
 

@@ -48,7 +48,6 @@ const QRScanner = ({
     try {
       // Thử lấy danh sách cameras trước
       const cameras = await Html5Qrcode.getCameras();
-      console.log('Available cameras:', cameras);
 
       // Sử dụng camera đầu tiên có sẵn
       const cameraId = cameras.length > 0 ? cameras[1].id : 'environment';
@@ -78,7 +77,6 @@ const QRScanner = ({
       );
       setIsScanning(true);
     } catch (error) {
-      console.error('Camera start error:', error);
       onScanError?.(t('camera.startError') || 'Không thể khởi động camera');
       setIsScanning(false);
     }

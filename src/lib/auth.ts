@@ -1,4 +1,4 @@
-import { setCookie, getCookie, CookieValueTypes } from 'cookies-next';
+import { setCookie, getCookie } from 'cookies-next';
 
 export const getOtp = async (phone: string) => {
   const response = await fetch(

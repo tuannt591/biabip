@@ -67,7 +67,6 @@ export default function Page() {
   const [isRefreshing, startRefreshTransition] = useTransition();
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [tableHistory, setTableHistory] = useState<any[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedPlayerForHistory, setSelectedPlayerForHistory] =
     useState<any>(null);
   const [allTableHistory, setAllTableHistory] = useState<any[]>([]);
