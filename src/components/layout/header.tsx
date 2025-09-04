@@ -15,14 +15,18 @@ import { LanguageToggle } from '../language-toggle';
 import { useAuthStore } from '@/stores/auth';
 import { IconLogout } from '@tabler/icons-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const { isLoggedIn, user, logout } = useAuthStore();
+  const router = useRouter();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
     logout();
     setShowLogoutDialog(false);
+    // Redirect to login page immediately after logout
+    router.push('/login');
   };
 
   return (
