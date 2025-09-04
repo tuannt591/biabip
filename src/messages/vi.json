@@ -15,7 +15,8 @@
     "backToTables": "Quay lại danh sách bàn",
     "retry": "Thử lại",
     "start": "Bắt đầu",
-    "stop": "Dừng"
+    "stop": "Dừng",
+    "refresh": "Làm mới"
   },
   "navigation": {
     "dashboard": "Trang chủ",

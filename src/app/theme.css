@@ -28,12 +28,12 @@ body {
 
 .theme-default,
 .theme-default-scaled {
-  --primary: var(--color-neutral-600);
-  --primary-foreground: var(--color-neutral-50);
+  --primary: var(--color-blue-600);
+  --primary-foreground: var(--color-blue-50);
 
   @variant dark {
-    --primary: var(--color-neutral-500);
-    --primary-foreground: var(--color-neutral-50);
+    --primary: var(--color-blue-500);
+    --primary-foreground: var(--color-blue-50);
   }
 }
 
@@ -67,6 +67,17 @@ body {
   @variant dark {
     --primary: var(--color-amber-500);
     --primary-foreground: var(--color-amber-50);
+  }
+}
+
+.theme-purple,
+.theme-purple-scaled {
+  --primary: var(--color-purple-600);
+  --primary-foreground: var(--color-purple-50);
+
+  @variant dark {
+    --primary: var(--color-purple-500);
+    --primary-foreground: var(--color-purple-50);
   }
 }
 

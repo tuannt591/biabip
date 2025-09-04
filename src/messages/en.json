@@ -15,7 +15,8 @@
     "backToTables": "Back to Tables",
     "retry": "Retry",
     "start": "Start",
-    "stop": "Stop"
+    "stop": "Stop",
+    "refresh": "Refresh"
   },
   "navigation": {
     "dashboard": "Dashboard",

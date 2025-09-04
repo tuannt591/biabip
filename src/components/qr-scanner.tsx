@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeScanType } from 'html5-qrcode';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { IconCamera, IconCameraOff } from '@tabler/icons-react';
@@ -13,7 +13,7 @@ interface QRScannerProps {
 
 const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
   const { t } = useLanguage();
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
@@ -32,56 +32,52 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
     }
 
     if (scannerRef.current) {
-      await scannerRef.current.clear();
+      await scannerRef.current.stop();
       scannerRef.current = null;
     }
 
-    const scanner = new Html5QrcodeScanner(
-      'qr-scanner',
-      {
-        fps: 10,
-        qrbox: {
-          width: 250,
-          height: 250
-        },
-        aspectRatio: 1.0,
-        showTorchButtonIfSupported: true,
-        showZoomSliderIfSupported: true,
-        defaultZoomValueIfSupported: 2,
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true
-        },
-        rememberLastUsedCamera: false, // Don't remember last camera to always prefer rear
-        formatsToSupport: [0], // QR Code format
-        videoConstraints: {
-          facingMode: { ideal: 'environment' } // Prefer rear camera
-        }
-      },
-      false
-    );
-
+    const scanner = new Html5Qrcode('qr-scanner');
     scannerRef.current = scanner;
 
-    scanner.render(
-      (decodedText: string) => {
-        // QR code scan success
-        onScanSuccess(decodedText);
-        stopScanner();
-      },
-      () => {
-        // QR code scan error - usually means no QR code found, so we don't show this as error
-        // This is expected when no QR code is in view
-      }
-    );
+    try {
+      // Thử lấy danh sách cameras trước
+      const cameras = await Html5Qrcode.getCameras();
+      console.log('Available cameras:', cameras);
 
-    setIsScanning(true);
+      // Sử dụng camera đầu tiên có sẵn
+      const cameraId = cameras.length > 0 ? cameras[1].id : 'environment';
+
+      await scanner.start(
+        cameraId,
+        {
+          fps: 10,
+          qrbox: {
+            width: 300,
+            height: 300
+          },
+          aspectRatio: 1.0
+        },
+        (decodedText: string) => {
+          // QR code scan success
+          onScanSuccess(decodedText);
+          stopScanner();
+        },
+        () => {
+          // QR code scan error - usually means no QR code found
+        }
+      );
+      setIsScanning(true);
+    } catch (error) {
+      console.error('Camera start error:', error);
+      onScanError?.(t('camera.startError') || 'Không thể khởi động camera');
+      setIsScanning(false);
+    }
   };
 
   const stopScanner = async () => {
     if (scannerRef.current) {
       try {
-        await scannerRef.current.clear();
+        await scannerRef.current.stop();
         scannerRef.current = null;
       } catch {
         // Error stopping scanner, ignore
@@ -97,16 +93,18 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
   }, []);
 
   return (
-    <div className='flex flex-col items-center space-y-4'>
-      <div
-        id='qr-scanner'
-        className={`w-full ${isScanning ? '' : 'hidden'}`}
-        style={{ minHeight: '300px' }}
-      />
+    <div className='w-full'>
+      <div className='relative min-h-[300px] w-full'>
+        <div
+          id='qr-scanner'
+          className={`absolute top-0 left-0 h-full w-full ${isScanning ? 'visible' : 'invisible'}`}
+          style={{ minHeight: '300px', maxWidth: '100%' }}
+        />
 
-      {!isScanning && (
-        <div className='flex flex-col items-center space-y-4'>
-          <div className='aspect-square w-full max-w-sm rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center'>
+        <div
+          className={`absolute top-0 left-0 flex h-full w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-center ${isScanning ? 'invisible' : 'visible'}`}
+        >
+          <div>
             <IconCamera className='mx-auto mb-4 h-16 w-16 text-gray-400' />
             <p className='text-sm text-gray-600'>
               {t('qrScanner.clickToStart') ||
@@ -114,26 +112,28 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
             </p>
           </div>
         </div>
-      )}
+      </div>
 
-      <Button
-        variant={isScanning ? 'destructive' : 'default'}
-        onClick={isScanning ? stopScanner : startScanner}
-        className='flex items-center gap-2'
-        disabled={hasPermission === false}
-      >
-        {isScanning ? (
-          <>
-            <IconCameraOff className='h-4 w-4' />
-            {t('common.stop') || 'Dừng quét'}
-          </>
-        ) : (
-          <>
-            <IconCamera className='h-4 w-4' />
-            {t('common.start') || 'Bắt đầu quét'}
-          </>
-        )}
-      </Button>
+      <div className='mt-6 flex items-center justify-center'>
+        <Button
+          variant={isScanning ? 'destructive' : 'default'}
+          onClick={isScanning ? stopScanner : startScanner}
+          className='flex items-center gap-2'
+          disabled={hasPermission === false}
+        >
+          {isScanning ? (
+            <>
+              <IconCameraOff className='h-4 w-4' />
+              {t('common.stop') || 'Dừng quét'}
+            </>
+          ) : (
+            <>
+              <IconCamera className='h-4 w-4' />
+              {t('common.start') || 'Bắt đầu quét'}
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 };

@@ -84,7 +84,7 @@ export default function Page() {
     toast.error(error);
   };
 
-  const onQRScanSuccess = (decodedText: string) => {
+  const onQRScanSuccess = async (decodedText: string) => {
     // Extract table ID from QR code (assuming QR code contains just the table ID or URL with table ID)
     let extractedTableId = decodedText.trim();
 
@@ -96,9 +96,23 @@ export default function Page() {
       }
     }
 
-    setTableId(extractedTableId);
     setScannerOpen(false);
-    toast.success(t('qrScanner.scanSuccess') || 'Quét QR thành công!');
+
+    // Tự động join table ngay khi scan thành công
+    if (!user?.token || !user?.id) {
+      toast.error(t('messages.userInfoMissing'));
+      return;
+    }
+
+    try {
+      await joinTable(extractedTableId, user.id, user.token);
+      toast.success(t('messages.successfullyJoinedTable'));
+      router.push(`/dashboard/table/${extractedTableId}`);
+    } catch (error) {
+      toast.error(t('messages.failedToJoinTable'));
+      // Nếu join thất bại, vẫn đặt tableId để user có thể thử lại
+      setTableId(extractedTableId);
+    }
   };
 
   return (

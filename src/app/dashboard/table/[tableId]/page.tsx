@@ -36,7 +36,8 @@ import {
   IconCopy,
   IconQrcode,
   IconUsers,
-  IconArrowLeft
+  IconArrowLeft,
+  IconRefresh
 } from '@tabler/icons-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -61,6 +62,7 @@ export default function Page() {
   const [isTransferring, startTransferTransition] = useTransition();
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [isRefreshing, startRefreshTransition] = useTransition();
 
   const fetchTableAndPlayers = async () => {
     if (user?.token && params.tableId) {
@@ -186,6 +188,12 @@ export default function Page() {
     }
   };
 
+  const handleRefresh = () => {
+    startRefreshTransition(() => {
+      fetchTableAndPlayers();
+    });
+  };
+
   if (loading) {
     return (
       <PageContainer>
@@ -215,10 +223,7 @@ export default function Page() {
             <IconArrowLeft className='h-4 w-4' />
           </Button>
 
-          <Heading
-            title={table.name}
-            description={`${t('table.tableId')}: ${table.id}`}
-          />
+          <Heading title={table.name} description={''} />
         </div>
 
         {/* Invite Players Section */}
@@ -233,22 +238,28 @@ export default function Page() {
             <p className='text-muted-foreground mb-4 text-sm'>
               {t('table.inviteDescription')}
             </p>
-            <div className='flex flex-col gap-3 sm:flex-row'>
+            <div className='flex gap-3'>
               <Button
                 variant='outline'
                 onClick={handleCopyTableId}
-                className='flex items-center gap-2'
+                className='flex flex-1 items-center justify-center gap-2'
               >
                 <IconCopy className='h-4 w-4' />
-                {t('table.copyTableId')}
+                <span className='hidden sm:inline'>
+                  {t('table.copyTableId')}
+                </span>
+                <span className='sm:hidden'>Copy ID</span>
               </Button>
               <Button
                 variant='outline'
                 onClick={handleShowQrCode}
-                className='flex items-center gap-2'
+                className='flex flex-1 items-center justify-center gap-2'
               >
                 <IconQrcode className='h-4 w-4' />
-                {t('table.showQrCode')}
+                <span className='hidden sm:inline'>
+                  {t('table.showQrCode')}
+                </span>
+                <span className='sm:hidden'>QR Code</span>
               </Button>
             </div>
           </CardContent>
@@ -434,6 +445,21 @@ export default function Page() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Refresh Button - Bottom */}
+        <div className='flex justify-center pt-4'>
+          <Button
+            variant='outline'
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className='flex items-center gap-2'
+          >
+            <IconRefresh
+              className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+            />
+            {isRefreshing ? t('common.loading') : t('common.refresh')}
+          </Button>
+        </div>
       </div>
     </PageContainer>
   );
