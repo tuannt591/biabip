@@ -9,4 +9,4 @@ Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 
-Sitemap: https://biabip.com/sitemap.xml
+Sitemap: https://biabip.vercel.app/sitemap.xml

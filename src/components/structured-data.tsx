@@ -16,7 +16,7 @@ export function JsonLd({ data }: JsonLdProps) {
 }
 
 export function WebsiteStructuredData() {
-  const baseUrl = 'https://biabip.com';
+  const baseUrl = 'https://biabip.vercel.app';
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -51,7 +51,7 @@ export function WebsiteStructuredData() {
 export function BreadcrumbStructuredData() {
   const pathname = usePathname();
   const pathSegments = pathname.split('/').filter((segment) => segment);
-  const baseUrl = 'https://biabip.com';
+  const baseUrl = 'https://biabip.vercel.app';
 
   const breadcrumbList = {
     '@context': 'https://schema.org',

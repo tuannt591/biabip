@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false
   },
-  metadataBase: new URL('https://biabip.com'),
+  metadataBase: new URL('https://biabip.vercel.app'),
   openGraph: {
     title: 'BiaBip - Quản lý điểm game bàn',
     description:

@@ -5,7 +5,7 @@
   "private": true,
   "author": {
     "name": "BiaBip Team",
-    "url": "https://biabip.com"
+    "url": "https://biabip.vercel.app"
   },
   "scripts": {
     "dev": "next dev --turbopack",
