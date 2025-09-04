@@ -13,9 +13,18 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // Allow access to /join routes without authentication
+  if (req.nextUrl.pathname.startsWith('/join')) {
+    return NextResponse.next();
+  }
+
   if (req.nextUrl.pathname.startsWith('/dashboard')) {
     if (!session) {
-      return NextResponse.redirect(new URL('/login', req.url));
+      // Capture the current path as callback URL for redirect after login
+      const callbackUrl = encodeURIComponent(req.nextUrl.pathname);
+      return NextResponse.redirect(
+        new URL(`/login?callbackUrl=${callbackUrl}`, req.url)
+      );
     }
   }
 

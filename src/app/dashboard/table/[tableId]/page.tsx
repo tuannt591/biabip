@@ -155,7 +155,7 @@ export default function Page() {
 
     startUpdateTransition(async () => {
       try {
-        await updateUser(editingPlayerName, user.token);
+        await updateUser(editingPlayerName, user?.token);
         toast.success(t('messages.nameUpdatedSuccessfully'));
 
         const updatedPlayers = table.players.map((p: any) =>
@@ -163,7 +163,7 @@ export default function Page() {
         );
         setTable({ ...table, players: updatedPlayers });
 
-        if (editingPlayer.id === user.id) {
+        if (editingPlayer.id === user?.id) {
           login({ ...user, name: editingPlayerName });
         }
 
@@ -185,10 +185,10 @@ export default function Page() {
       try {
         await transferPoints(
           params.tableId as string,
-          user.id,
+          user?.id,
           selectedPlayer.id,
           Number(transferAmount),
-          user.token
+          user?.token
         );
         toast.success(t('messages.pointsTransferredSuccessfully'));
         setSelectedPlayer(null);
@@ -211,7 +211,7 @@ export default function Page() {
 
   const handleShowQrCode = async () => {
     try {
-      const joinUrl = `${window.location.origin}/dashboard/table/${table.id}`;
+      const joinUrl = `${window.location.origin}/join/${table.id}`;
       const qrCodeDataUrl = await QRCode.toDataURL(joinUrl, {
         width: 256,
         margin: 2,
@@ -257,6 +257,14 @@ export default function Page() {
   };
 
   if (loading) {
+    return (
+      <PageContainer>
+        <div>{t('common.loading')}</div>
+      </PageContainer>
+    );
+  }
+
+  if (!user) {
     return (
       <PageContainer>
         <div>{t('common.loading')}</div>
@@ -349,7 +357,7 @@ export default function Page() {
                     <TableCell>
                       <div className='flex items-center gap-1'>
                         <span className='font-medium'>{player.name}</span>
-                        {user.id === player.id && (
+                        {user?.id === player.id && (
                           <Button
                             variant='ghost'
                             size='icon'
@@ -372,7 +380,7 @@ export default function Page() {
                       </span>
                     </TableCell>
                     <TableCell className='text-center'>
-                      {player.id !== user.id && (
+                      {user && player.id !== user.id && (
                         <Dialog
                           onOpenChange={(isOpen) => {
                             if (!isOpen) setSelectedPlayer(null);

@@ -94,6 +94,8 @@
     "successfullyJoinedTable": "Successfully joined table!",
     "failedToJoinTable": "Failed to join table. Please check the ID and try again.",
     "qrCodeScannedSuccessfully": "QR code scanned successfully!",
+    "joiningTable": "Joining table...",
+    "redirectingToLogin": "Redirecting to login...",
     "noCameraFound": "No camera found on this device",
     "failedToInitializeCamera": "Failed to initialize camera",
     "failedToStartCamera": "Failed to start camera",

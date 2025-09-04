@@ -16,7 +16,7 @@ import {
 import { getOtp, setSession, verifyOtp } from '@/lib/auth';
 import { useAuthStore } from '@/stores/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -33,6 +33,7 @@ export default function OtpForm({ phone }: { phone: string }) {
   const [isSendingAgain, startSendAgainTransition] = useTransition();
   const { login } = useAuthStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [countdown, setCountdown] = useState(60);
   const [isCounting, setIsCounting] = useState(false);
 
@@ -81,7 +82,14 @@ export default function OtpForm({ phone }: { phone: string }) {
         login(user);
         setSession(user);
         toast.success('OTP Verified Successfully!');
-        router.push('/dashboard');
+
+        // Check if there's a callback URL to redirect to
+        const callbackUrl = searchParams.get('callbackUrl');
+        if (callbackUrl) {
+          router.push(decodeURIComponent(callbackUrl));
+        } else {
+          router.push('/dashboard');
+        }
       } catch (error) {
         toast.error('Failed to verify OTP. Please try again.');
       }

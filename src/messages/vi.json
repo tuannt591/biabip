@@ -94,6 +94,8 @@
     "successfullyJoinedTable": "Tham gia bàn thành công!",
     "failedToJoinTable": "Không thể tham gia bàn. Vui lòng kiểm tra ID và thử lại.",
     "qrCodeScannedSuccessfully": "Quét mã QR thành công!",
+    "joiningTable": "Đang tham gia bàn...",
+    "redirectingToLogin": "Đang chuyển hướng đến trang đăng nhập...",
     "noCameraFound": "Không tìm thấy camera trên thiết bị này",
     "failedToInitializeCamera": "Không thể khởi tạo camera",
     "failedToStartCamera": "Không thể bật camera",

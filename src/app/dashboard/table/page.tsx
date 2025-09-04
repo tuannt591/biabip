@@ -95,6 +95,12 @@ export default function Page() {
       if (match) {
         extractedTableId = match[1];
       }
+    } else if (decodedText.includes('/join/')) {
+      // Support new join URL format
+      const match = decodedText.match(/\/join\/([^/?#]+)/);
+      if (match) {
+        extractedTableId = match[1];
+      }
     }
 
     // Tự động join table ngay khi scan thành công
