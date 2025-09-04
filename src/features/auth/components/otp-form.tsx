@@ -13,6 +13,7 @@ import {
   InputOTPGroup,
   InputOTPSlot
 } from '@/components/ui/input-otp';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getOtp, setSession, verifyOtp } from '@/lib/auth';
 import { useAuthStore } from '@/stores/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,13 +23,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-const formSchema = z.object({
-  otp: z.string().min(6, { message: 'Enter a valid OTP' })
-});
-
-type OtpFormValue = z.infer<typeof formSchema>;
-
 export default function OtpForm({ phone }: { phone: string }) {
+  const { t } = useLanguage();
   const [loading, startTransition] = useTransition();
   const [isSendingAgain, startSendAgainTransition] = useTransition();
   const { login } = useAuthStore();
@@ -36,6 +32,12 @@ export default function OtpForm({ phone }: { phone: string }) {
   const searchParams = useSearchParams();
   const [countdown, setCountdown] = useState(60);
   const [isCounting, setIsCounting] = useState(false);
+
+  const formSchema = z.object({
+    otpCode: z.string().min(6, { message: t('auth.enterValidOtp') })
+  });
+
+  type OtpFormValue = z.infer<typeof formSchema>;
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -59,11 +61,11 @@ export default function OtpForm({ phone }: { phone: string }) {
     startSendAgainTransition(async () => {
       try {
         await getOtp(phone);
-        toast.success('A new OTP has been sent.');
+        toast.success(t('auth.newOtpSent'));
         setCountdown(60);
         setIsCounting(true);
       } catch (error) {
-        toast.error('Failed to send new OTP.');
+        toast.error(t('auth.failedToSendNewOtp'));
       }
     });
   };
@@ -71,17 +73,17 @@ export default function OtpForm({ phone }: { phone: string }) {
   const form = useForm<OtpFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      otp: ''
+      otpCode: ''
     }
   });
 
   const onSubmit = async (data: OtpFormValue) => {
     startTransition(async () => {
       try {
-        const user = await verifyOtp(phone, data.otp);
+        const user = await verifyOtp(phone, data.otpCode);
         login(user);
         setSession(user);
-        toast.success('OTP Verified Successfully!');
+        toast.success(t('auth.otpVerifiedSuccessfully'));
 
         // Check if there's a callback URL to redirect to
         const callbackUrl = searchParams.get('callbackUrl');
@@ -91,7 +93,7 @@ export default function OtpForm({ phone }: { phone: string }) {
           router.push('/dashboard');
         }
       } catch (error) {
-        toast.error('Failed to verify OTP. Please try again.');
+        toast.error(t('auth.failedToVerifyOtp'));
       }
     });
   };
@@ -105,11 +107,11 @@ export default function OtpForm({ phone }: { phone: string }) {
         >
           <FormField
             control={form.control}
-            name='otp'
+            name='otpCode'
             render={({ field }) => (
               <FormItem>
                 <FormLabel className='block text-center leading-[1.5]'>
-                  Your one-time verification code was sent to {phone}
+                  {t('auth.otpDescription', { phone: `+${phone}` })}
                 </FormLabel>
                 <FormControl>
                   <InputOTP
@@ -137,20 +139,22 @@ export default function OtpForm({ phone }: { phone: string }) {
             className='mt-4 h-12 w-full text-lg'
             type='submit'
           >
-            Verify OTP
+            {t('auth.verifyOtp')}
           </Button>
         </form>
       </Form>
       <div className='mt-4 text-center'>
         {isCounting ? (
-          <p className='text-muted-foreground'>Resend OTP in {countdown}s</p>
+          <p className='text-muted-foreground'>
+            {t('auth.resendOtpIn', { countdown: countdown.toString() })}
+          </p>
         ) : (
           <Button
             variant='link'
             onClick={handleSendAgain}
             disabled={isSendingAgain}
           >
-            Send again
+            {t('auth.sendAgain')}
           </Button>
         )}
       </div>

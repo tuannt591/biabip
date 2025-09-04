@@ -109,5 +109,24 @@
   },
   "camera": {
     "permissionDenied": "Không có quyền truy cập camera. Vui lòng cấp quyền camera trong cài đặt trình duyệt."
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "loginDescription": "Nhập số điện thoại để đăng nhập vào tài khoản",
+    "phoneNumber": "Số điện thoại",
+    "phonePlaceholder": "32 123 4567",
+    "continueWithPhone": "Tiếp tục với số điện thoại",
+    "otpSent": "Mã OTP đã được gửi đến số điện thoại của bạn!",
+    "failedToSendOtp": "Không thể gửi mã OTP. Vui lòng thử lại.",
+    "invalidPhoneNumber": "Số điện thoại không hợp lệ!",
+    "otpDescription": "Mã xác thực một lần đã được gửi đến {phone}",
+    "verifyOtp": "Xác thực OTP",
+    "sendAgain": "Gửi lại",
+    "resendOtpIn": "Gửi lại OTP sau {countdown}s",
+    "newOtpSent": "Mã OTP mới đã được gửi.",
+    "failedToSendNewOtp": "Không thể gửi mã OTP mới.",
+    "otpVerifiedSuccessfully": "Xác thực OTP thành công!",
+    "failedToVerifyOtp": "Không thể xác thực OTP. Vui lòng thử lại.",
+    "enterValidOtp": "Nhập mã OTP hợp lệ"
   }
 }

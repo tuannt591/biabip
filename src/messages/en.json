@@ -109,5 +109,24 @@
   },
   "camera": {
     "permissionDenied": "Camera permission denied. Please allow camera access in your browser settings."
+  },
+  "auth": {
+    "login": "Login",
+    "loginDescription": "Enter your phone number below to login to your account",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "32 123 4567",
+    "continueWithPhone": "Continue With Phone",
+    "otpSent": "OTP has been sent to your phone!",
+    "failedToSendOtp": "Failed to send OTP. Please try again.",
+    "invalidPhoneNumber": "Invalid phone number!",
+    "otpDescription": "Your one-time verification code was sent to {phone}",
+    "verifyOtp": "Verify OTP",
+    "sendAgain": "Send again",
+    "resendOtpIn": "Resend OTP in {countdown}s",
+    "newOtpSent": "A new OTP has been sent.",
+    "failedToSendNewOtp": "Failed to send new OTP.",
+    "otpVerifiedSuccessfully": "OTP Verified Successfully!",
+    "failedToVerifyOtp": "Failed to verify OTP. Please try again.",
+    "enterValidOtp": "Enter a valid OTP"
   }
 }

@@ -9,6 +9,7 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getOtp } from '@/lib/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
@@ -21,12 +22,6 @@ import OtpForm from './otp-form';
 const phoneRegex = new RegExp(
   /^(\+?84|0)?(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5,9]|89|9[0-9])[0-9]{7}$/
 );
-
-const formSchema = z.object({
-  phone: z.string().regex(phoneRegex, 'Invalid phone number!')
-});
-
-type UserFormValue = z.infer<typeof formSchema>;
 
 const formatPhoneNumber = (phone: string): string => {
   if (phone.startsWith('+84')) {
@@ -42,10 +37,18 @@ const formatPhoneNumber = (phone: string): string => {
 };
 
 export default function UserAuthForm() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, startTransition] = useTransition();
   const [phone, setPhone] = useState('');
+
+  const formSchema = z.object({
+    phone: z.string().regex(phoneRegex, t('auth.invalidPhoneNumber'))
+  });
+
+  type UserFormValue = z.infer<typeof formSchema>;
+
   const defaultValues = {
     phone: ''
   };
@@ -61,9 +64,9 @@ export default function UserAuthForm() {
         const formattedPhone = formatPhoneNumber(data.phone);
         await getOtp(formattedPhone);
         setPhone(formattedPhone);
-        toast.success('OTP has been sent to your phone!');
+        toast.success(t('auth.otpSent'));
       } catch (error) {
-        toast.error('Failed to send OTP. Please try again.');
+        toast.error(t('auth.failedToSendOtp'));
       }
     });
   };
@@ -83,7 +86,7 @@ export default function UserAuthForm() {
               name='phone'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>{t('auth.phoneNumber')}</FormLabel>
                   <FormControl>
                     <div className='relative'>
                       <div className='pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3'>
@@ -93,7 +96,7 @@ export default function UserAuthForm() {
                       </div>
                       <Input
                         type='tel'
-                        placeholder='32 123 4567'
+                        placeholder={t('auth.phonePlaceholder')}
                         disabled={loading}
                         className='h-12 pl-14 text-lg'
                         {...field}
@@ -110,7 +113,7 @@ export default function UserAuthForm() {
               className='mt-4 ml-auto h-12 w-full text-lg'
               type='submit'
             >
-              Continue With Phone
+              {t('auth.continueWithPhone')}
             </Button>
           </form>
         </Form>
