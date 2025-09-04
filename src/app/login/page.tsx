@@ -2,8 +2,17 @@ import { Metadata } from 'next';
 import SignInViewPage from '@/features/auth/components/sign-in-view';
 
 export const metadata: Metadata = {
-  title: 'Authentication | Sign In',
-  description: 'Sign In page for authentication.'
+  title: 'Đăng nhập - BiaBip',
+  description:
+    'Đăng nhập vào BiaBip để bắt đầu chơi game và quản lý điểm số. Sử dụng số điện thoại để đăng nhập nhanh chóng và an toàn.',
+  openGraph: {
+    title: 'Đăng nhập - BiaBip',
+    description: 'Đăng nhập vào BiaBip để bắt đầu chơi game và quản lý điểm số.'
+  },
+  robots: {
+    index: false,
+    follow: true
+  }
 };
 
 export default async function Page() {

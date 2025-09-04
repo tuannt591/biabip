@@ -1,10 +1,11 @@
 {
-  "name": "next-shadcn-dashboard-starter",
+  "name": "biabip",
   "version": "1.0.0",
+  "description": "Ứng dụng quản lý điểm số game bàn hiện đại",
   "private": true,
   "author": {
-    "name": "Kiran",
-    "url": "https://github.com/Kiranism"
+    "name": "BiaBip Team",
+    "url": "https://biabip.com"
   },
   "scripts": {
     "dev": "next dev --turbopack",

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /dashboard
+Allow: /login
+
+Disallow: /dashboard/table/*/
+Disallow: /join/*/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+Sitemap: https://biabip.com/sitemap.xml
