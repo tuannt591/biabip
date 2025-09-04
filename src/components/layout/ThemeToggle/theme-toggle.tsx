@@ -34,12 +34,12 @@ export function ModeToggle() {
 
   return (
     <Button
-      variant='secondary'
+      variant='outline'
       size='icon'
-      className='group/toggle size-8'
+      className='h-8 w-8'
       onClick={handleThemeToggle}
     >
-      <IconBrightness />
+      <IconBrightness className='h-[1.2rem] w-[1.2rem]' />
       <span className='sr-only'>Toggle theme</span>
     </Button>
   );
