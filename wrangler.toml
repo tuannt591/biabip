@@ -1,4 +1,0 @@
-name = "bida-bip-v2"
-compatibility_date = "2023-04-21"
-pages_build_output_dir = "build"
-compatibility_flags = []
