@@ -16,13 +16,15 @@
     "retry": "Thử lại",
     "start": "Bắt đầu",
     "stop": "Dừng",
-    "refresh": "Làm mới"
+    "refresh": "Làm mới",
+    "clickToView": "Nhấn để xem"
   },
   "navigation": {
     "dashboard": "Trang chủ",
     "tables": "Bàn chơi",
     "profile": "Hồ sơ",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "history": "Lịch sử"
   },
   "tableManagement": {
     "title": "Quản lý bàn",
@@ -127,6 +129,22 @@
     "failedToSendNewOtp": "Không thể gửi mã OTP mới.",
     "otpVerifiedSuccessfully": "Xác thực OTP thành công!",
     "failedToVerifyOtp": "Không thể xác thực OTP. Vui lòng thử lại.",
-    "enterValidOtp": "Nhập mã OTP hợp lệ"
+    "enterValidOtp": "Nhập mã OTP hợp lệ",
+    "logout": "Đăng xuất",
+    "confirmLogout": "Xác nhận đăng xuất",
+    "confirmLogoutMessage": "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này không?",
+    "loginButton": "Đăng nhập"
+  },
+  "history": {
+    "title": "Lịch sử",
+    "description": "",
+    "noHistory": "Chưa có lịch sử game nào",
+    "totalTables": "Tổng số bàn",
+    "createdTables": "Bàn tạo",
+    "totalPoints": "Tổng điểm",
+    "historyJoinTables": "Lịch sử tham gia bàn chơi",
+    "creator": "Người tạo",
+    "you": "Bạn",
+    "tableCreatedDate": "Ngày tạo bàn"
   }
 }
