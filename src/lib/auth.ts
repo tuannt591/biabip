@@ -245,3 +245,24 @@ export const getTableHistory = async (tableId: string, token: string) => {
 
   return response.json();
 };
+
+export const getPlayerHistory = async (userId: string, token: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BIABIP_API_URL}/api/players/${userId}/history`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to get player history: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json();
+};

@@ -1,17 +1,35 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/9113740/201498864-2a900c64-d88f-4ed4-b5cf-770bcb57e1f5.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/9113740/201498152-b171abb8-9225-487a-821c-6ff49ee48579.png">
-</picture>
-
-<div align="center"><strong>Next.js Admin Dashboard Starter Template With Shadcn-ui</strong></div>
-<div align="center">Built with the Next.js 15 App Router</div>
-<br />
 <div align="center">
-<a href="https://dub.sh/shadcn-dashboard">View Demo</a>
-<span>
+  <h1>🎮 BiaBip</h1>
+  <p><strong>Ứng dụng quản lý điểm game bàn hiện đại</strong></p>
+  <p>Được xây dựng với Next.js 15 App Router và Shadcn/ui</p>
 </div>
 
-## Overview
+## Tổng quan
+
+BiaBip là một ứng dụng web hiện đại giúp bạn quản lý điểm số trong các trò chơi bài như tiến lên, phỏm, tứ sắc một cách dễ dàng và thuận tiện.
+
+### Tính năng chính
+
+- ✅ **Tạo bàn chơi nhanh chóng** - Tạo bàn mới chỉ trong vài giây
+- ✅ **QR Code tham gia** - Quét mã QR để tham gia bàn chơi ngay lập tức
+- ✅ **Chuyển điểm linh hoạt** - Chuyển điểm giữa các người chơi một cách dễ dàng
+- ✅ **Lịch sử chi tiết** - Theo dõi tất cả giao dịch chuyển điểm
+- ✅ **Đa ngôn ngữ** - Hỗ trợ tiếng Việt và tiếng Anh
+- ✅ **Giao diện đẹp** - Thiết kế hiện đại, responsive trên mọi thiết bị
+- ✅ **PWA Support** - Cài đặt như ứng dụng native trên điện thoại
+
+### Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **UI**: Shadcn/ui + Tailwind CSS  
+- **Language**: TypeScript
+- **State**: Zustand
+- **Forms**: React Hook Form + Zod
+- **Icons**: Tabler Icons
+- **QR**: html5-qrcode
+- **Animations**: Motion (Framer Motion)
+
+## Cấu trúc tính năng
 
 This is a starter template using the following stack:
 

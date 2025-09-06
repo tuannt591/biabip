@@ -1,0 +1,15 @@
+{
+  "name": "BiaBip - Quản lý điểm game bàn",
+  "short_name": "BiaBip",
+  "description": "Ứng dụng quản lý điểm số game bàn hiện đại",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "vi",
+  "categories": ["games", "entertainment", "productivity"],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

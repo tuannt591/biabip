@@ -16,13 +16,15 @@
     "retry": "Retry",
     "start": "Start",
     "stop": "Stop",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "clickToView": "Click to view"
   },
   "navigation": {
     "dashboard": "Dashboard",
     "tables": "Tables",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "history": "History"
   },
   "tableManagement": {
     "title": "Table Management",
@@ -127,6 +129,22 @@
     "failedToSendNewOtp": "Failed to send new OTP.",
     "otpVerifiedSuccessfully": "OTP Verified Successfully!",
     "failedToVerifyOtp": "Failed to verify OTP. Please try again.",
-    "enterValidOtp": "Enter a valid OTP"
+    "enterValidOtp": "Enter a valid OTP",
+    "logout": "Logout",
+    "confirmLogout": "Confirm Logout",
+    "confirmLogoutMessage": "Are you sure you want to logout from this account?",
+    "loginButton": "Log in"
+  },
+  "history": {
+    "title": "History",
+    "description": "",
+    "noHistory": "No game history yet",
+    "totalTables": "Total Tables",
+    "createdTables": "Created Tables",
+    "totalPoints": "Total Points",
+    "historyJoinTables": "Table Join History",
+    "creator": "Creator",
+    "you": "You",
+    "tableCreatedDate": "Table Created Date"
   }
 }

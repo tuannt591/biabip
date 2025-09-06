@@ -4,8 +4,14 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn Dashboard Starter',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Dashboard - Quản lý bàn chơi',
+  description:
+    'Trang quản lý các bàn chơi game. Tạo bàn mới, tham gia bàn có sẵn, và quản lý điểm số của bạn.',
+  openGraph: {
+    title: 'Dashboard - BiaBip',
+    description:
+      'Trang quản lý các bàn chơi game. Tạo bàn mới, tham gia bàn có sẵn.'
+  }
 };
 
 export default async function DashboardLayout({

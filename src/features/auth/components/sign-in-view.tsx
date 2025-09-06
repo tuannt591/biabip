@@ -14,7 +14,7 @@ export default function SignInViewPage() {
   const { t } = useLanguage();
 
   return (
-    <div className='relative flex min-h-screen justify-center p-4 pt-16 sm:pt-24'>
+    <div className='relative flex justify-center p-4 pt-16'>
       <Card className='h-fit w-full max-w-md'>
         <CardHeader>
           <CardTitle className='text-2xl'>{t('auth.login')}</CardTitle>

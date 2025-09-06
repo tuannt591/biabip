@@ -20,6 +20,14 @@ export const navItems: NavItem[] = [
     shortcut: ['p', 'p'],
     isActive: false,
     items: [] // No child items
+  },
+  {
+    title: 'History',
+    url: '/dashboard/history',
+    icon: 'history',
+    shortcut: ['h', 'h'],
+    isActive: false,
+    items: [] // No child items
   }
 ];
 

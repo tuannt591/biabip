@@ -1,10 +1,11 @@
 {
-  "name": "next-shadcn-dashboard-starter",
+  "name": "biabip",
   "version": "1.0.0",
+  "description": "Ứng dụng quản lý điểm số game bàn hiện đại",
   "private": true,
   "author": {
-    "name": "Kiran",
-    "url": "https://github.com/Kiranism"
+    "name": "BiaBip Team",
+    "url": "https://biabip.vercel.app"
   },
   "scripts": {
     "dev": "next dev --turbopack",
@@ -49,6 +50,7 @@
     "@tailwindcss/postcss": "^4.0.0",
     "@tanstack/react-table": "^8.21.2",
     "@types/qrcode": "^1.5.5",
+    "@vercel/analytics": "^1.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

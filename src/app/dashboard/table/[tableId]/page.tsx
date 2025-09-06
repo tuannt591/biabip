@@ -51,7 +51,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function Page() {
   const params = useParams();
   const router = useRouter();
-  const { user, login } = useAuthStore();
+  const { user, login, updateUser: updateUserInStore } = useAuthStore();
   const { t } = useLanguage();
   const [table, setTable] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -162,7 +162,7 @@ export default function Page() {
         setTable({ ...table, players: updatedPlayers });
 
         if (editingPlayer.id === user?.id) {
-          login({ ...user, name: editingPlayerName });
+          updateUserInStore({ name: editingPlayerName });
         }
 
         setEditDialogOpen(false);
