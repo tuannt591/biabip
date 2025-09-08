@@ -48,13 +48,61 @@ import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Loading component for table info
+function TableInfoSkeleton() {
+  return <Skeleton className='h-8 w-48' />;
+}
+
+// Loading component for players table
+function PlayersTableSkeleton() {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>
+            <Skeleton className='h-4 w-16' />
+          </TableHead>
+          <TableHead className='text-center'>
+            <Skeleton className='mx-auto h-4 w-12' />
+          </TableHead>
+          <TableHead className='text-center'>
+            <Skeleton className='mx-auto h-4 w-16' />
+          </TableHead>
+          <TableHead className='text-center'>
+            <Skeleton className='mx-auto h-4 w-14' />
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[...Array(3)].map((_, index) => (
+          <TableRow key={index}>
+            <TableCell>
+              <div className='flex items-center gap-1'>
+                <Skeleton className='h-4 w-24' />
+                <Skeleton className='h-8 w-8 rounded' />
+              </div>
+            </TableCell>
+            <TableCell className='text-center'>
+              <Skeleton className='mx-auto h-4 w-8' />
+            </TableCell>
+            <TableCell className='text-center'>
+              <Skeleton className='mx-auto h-8 w-8 rounded' />
+            </TableCell>
+            <TableCell className='text-center'>
+              <Skeleton className='mx-auto h-8 w-8 rounded' />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 export default function Page() {
   const params = useParams();
   const router = useRouter();
   const { user, updateUser: updateUserInStore } = useAuthStore();
   const { t } = useLanguage();
-  const [table, setTable] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
   const [editingPlayerName, setEditingPlayerName] = useState('');
@@ -69,11 +117,16 @@ export default function Page() {
   const [selectedPlayerForHistory, setSelectedPlayerForHistory] =
     useState<any>(null);
   const [allTableHistory, setAllTableHistory] = useState<any[]>([]);
+  const [tableInfo, setTableInfo] = useState<any>(null);
+  const [playersInfo, setPlayersInfo] = useState<any[]>([]);
+  const [loadingTableInfo, setLoadingTableInfo] = useState(true);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
 
-  const fetchTableAndPlayers = useCallback(async () => {
+  const fetchTableDataById = useCallback(async () => {
     if (user?.token && params.tableId) {
       try {
-        setLoading(true);
+        setLoadingTableInfo(true);
+        setLoadingPlayers(true);
         const [tableData, historyData] = await Promise.all([
           getTableById(params.tableId as string, user.token),
           getTableHistory(params.tableId as string, user.token)
@@ -91,7 +144,8 @@ export default function Page() {
             return { ...player, ...userInfo };
           });
 
-          setTable({ ...tableData, players: enrichedPlayers });
+          setPlayersInfo(enrichedPlayers);
+          setTableInfo({ name: tableData.name, id: tableData.id });
 
           // Enrich history with player names
           const enrichedHistory = (historyData || []).map(
@@ -122,24 +176,85 @@ export default function Page() {
 
           setAllTableHistory(sortedHistory);
         } else {
-          setTable(tableData);
+          setTableInfo({ name: tableData.name, id: tableData.id });
+          setPlayersInfo([]);
           setAllTableHistory([]);
         }
       } catch (error) {
         setAllTableHistory([]);
       } finally {
-        setLoading(false);
+        setLoadingPlayers(false);
+        setLoadingTableInfo(false);
+      }
+    }
+  }, [user?.token, params.tableId]);
+
+  const fetchPlayers = useCallback(async () => {
+    if (user?.token && params.tableId) {
+      try {
+        setLoadingPlayers(true);
+        const [tableData, historyData] = await Promise.all([
+          getTableById(params.tableId as string, user.token),
+          getTableHistory(params.tableId as string, user.token)
+        ]);
+
+        if (tableData?.players?.length > 0) {
+          const playerIds = tableData.players.map((p: any) => p.id);
+          const batchUsersResponse = await getBatchUsers(playerIds, user.token);
+          const usersFromBatch = batchUsersResponse.data || [];
+
+          const enrichedPlayers = tableData.players.map((player: any) => {
+            const userInfo = usersFromBatch.find(
+              (u: any) => u.id === player.id
+            );
+            return { ...player, ...userInfo };
+          });
+
+          setPlayersInfo(enrichedPlayers);
+
+          // Enrich history with player names
+          const enrichedHistory = (historyData || []).map(
+            (transaction: any) => {
+              const fromPlayer = enrichedPlayers.find(
+                (p: any) => p.id === transaction.fromPlayerId
+              );
+              const toPlayer = enrichedPlayers.find(
+                (p: any) => p.id === transaction.toPlayerId
+              );
+
+              return {
+                ...transaction,
+                fromPlayerName:
+                  fromPlayer?.name || transaction.fromPlayerName || 'Unknown',
+                toPlayerName:
+                  toPlayer?.name || transaction.toPlayerName || 'Unknown'
+              };
+            }
+          );
+
+          // Sort by newest first (descending order)
+          const sortedHistory = enrichedHistory.sort((a: any, b: any) => {
+            const dateA = new Date(a.createdAt || a.timestamp);
+            const dateB = new Date(b.createdAt || b.timestamp);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          setAllTableHistory(sortedHistory);
+        } else {
+          setPlayersInfo([]);
+          setAllTableHistory([]);
+        }
+      } catch (error) {
+        setAllTableHistory([]);
+      } finally {
+        setLoadingPlayers(false);
       }
     }
   }, [user?.token, params.tableId]);
 
   useEffect(() => {
-    if (user) {
-      fetchTableAndPlayers();
-    } else {
-      setLoading(false);
-    }
-  }, [user, params.tableId, fetchTableAndPlayers]);
+    fetchTableDataById();
+  }, [fetchTableDataById]);
 
   const handleEditClick = (player: any) => {
     setEditingPlayer(player);
@@ -154,16 +269,11 @@ export default function Page() {
       try {
         await updateUser(editingPlayerName, user?.token);
         toast.success(t('messages.nameUpdatedSuccessfully'));
-
-        const updatedPlayers = table.players.map((p: any) =>
-          p.id === editingPlayer.id ? { ...p, name: editingPlayerName } : p
-        );
-        setTable({ ...table, players: updatedPlayers });
-
         if (editingPlayer.id === user?.id) {
           updateUserInStore({ name: editingPlayerName });
         }
 
+        fetchPlayers(); // Refresh players
         setEditDialogOpen(false);
         setEditingPlayer(null);
       } catch (error) {
@@ -190,7 +300,7 @@ export default function Page() {
         toast.success(t('messages.pointsTransferredSuccessfully'));
         setSelectedPlayer(null);
         setTransferAmount('');
-        fetchTableAndPlayers(); // Refresh data
+        fetchPlayers(); // Refresh players
       } catch (error) {
         toast.error(t('messages.failedToTransferPoints'));
       }
@@ -199,7 +309,7 @@ export default function Page() {
 
   const handleCopyTableId = async () => {
     try {
-      await navigator.clipboard.writeText(table.id);
+      await navigator.clipboard.writeText(tableInfo?.id);
       toast.success(t('messages.tableIdCopied'));
     } catch (error) {
       toast.error(t('messages.failedToCopyTableId'));
@@ -208,7 +318,7 @@ export default function Page() {
 
   const handleShowQrCode = async () => {
     try {
-      const joinUrl = `${window.location.origin}/join/${table.id}`;
+      const joinUrl = `${window.location.origin}/join/${tableInfo?.id}`;
       const qrCodeDataUrl = await QRCode.toDataURL(joinUrl, {
         width: 256,
         margin: 2,
@@ -225,7 +335,7 @@ export default function Page() {
   };
 
   const handleRefresh = () => {
-    fetchTableAndPlayers();
+    fetchPlayers();
   };
 
   const handleViewHistory = async (player: any) => {
@@ -251,110 +361,7 @@ export default function Page() {
     }
   };
 
-  if (loading) {
-    return (
-      <PageContainer scrollable>
-        <div className='flex-1 space-y-6'>
-          <div className='flex items-center gap-3'>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={() => router.push('/dashboard/table')}
-            >
-              <IconArrowLeft className='h-4 w-4' />
-            </Button>
-            <Skeleton className='h-8 w-48' />
-          </div>
-
-          {/* Invite Players Section - Show normally */}
-          <Card className='py-4'>
-            <CardContent className='px-4'>
-              <div className='mb-4 flex items-center gap-3'>
-                <IconUsers className='h-5 w-5 text-blue-600' />
-                <h3 className='text-lg font-semibold'>
-                  {t('table.invitePlayers')}
-                </h3>
-              </div>
-              <p className='text-muted-foreground mb-4 text-sm'>
-                {t('table.inviteDescription')}
-              </p>
-              <div className='flex gap-3'>
-                <Button
-                  variant='outline'
-                  disabled
-                  className='flex flex-1 items-center justify-center gap-2'
-                >
-                  <IconCopy className='h-4 w-4' />
-                  <span className='hidden sm:inline'>
-                    {t('table.copyTableId')}
-                  </span>
-                  <span className='sm:hidden'>Copy ID</span>
-                </Button>
-                <Button
-                  variant='outline'
-                  disabled
-                  className='flex flex-1 items-center justify-center gap-2'
-                >
-                  <IconQrcode className='h-4 w-4' />
-                  <span className='hidden sm:inline'>
-                    {t('table.showQrCode')}
-                  </span>
-                  <span className='sm:hidden'>QR Code</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Table Skeleton */}
-          <Card className='py-2'>
-            <CardContent className='px-2'>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <Skeleton className='h-4 w-16' />
-                    </TableHead>
-                    <TableHead className='text-center'>
-                      <Skeleton className='mx-auto h-4 w-12' />
-                    </TableHead>
-                    <TableHead className='text-center'>
-                      <Skeleton className='mx-auto h-4 w-16' />
-                    </TableHead>
-                    <TableHead className='text-center'>
-                      <Skeleton className='mx-auto h-4 w-14' />
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[...Array(3)].map((_, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className='flex items-center gap-1'>
-                          <Skeleton className='h-4 w-24' />
-                          <Skeleton className='h-8 w-8 rounded' />
-                        </div>
-                      </TableCell>
-                      <TableCell className='text-center'>
-                        <Skeleton className='mx-auto h-4 w-8' />
-                      </TableCell>
-                      <TableCell className='text-center'>
-                        <Skeleton className='mx-auto h-8 w-8 rounded' />
-                      </TableCell>
-                      <TableCell className='text-center'>
-                        <Skeleton className='mx-auto h-8 w-8 rounded' />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-      </PageContainer>
-    );
-  }
-
-  if (!table) {
+  if (!tableInfo && !loadingTableInfo) {
     return (
       <PageContainer>
         <div>{t('table.tableNotFound')}</div>
@@ -374,8 +381,11 @@ export default function Page() {
           >
             <IconArrowLeft className='h-4 w-4' />
           </Button>
-
-          <Heading title={table.name} description={''} />
+          {loadingTableInfo ? (
+            <TableInfoSkeleton />
+          ) : (
+            <Heading title={tableInfo.name} description={''} />
+          )}
         </div>
 
         {/* Invite Players Section */}
@@ -416,118 +426,123 @@ export default function Page() {
             </div>
           </CardContent>
         </Card>
+
         <Card className='py-2'>
           <CardContent className='px-2'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('table.player')}</TableHead>
-                  <TableHead className='text-center'>
-                    {t('table.point')}
-                  </TableHead>
-                  <TableHead className='text-center'>
-                    {t('table.transfer')}
-                  </TableHead>
-                  <TableHead className='text-center'>
-                    {t('table.history')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {table.players.map((player: any) => (
-                  <TableRow key={player.id}>
-                    <TableCell>
-                      <div className='flex items-center gap-1'>
-                        <span className='font-medium'>{player.name}</span>
-                        {user?.id === player.id && (
-                          <Button
-                            variant='ghost'
-                            size='icon'
-                            onClick={() => handleEditClick(player)}
-                          >
-                            <IconPencil className='h-4 w-4' />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className='text-center'>
-                      <span
-                        className={`font-medium ${
-                          (player.points || 0) > 0
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                        }`}
-                      >
-                        {player.points || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell className='text-center'>
-                      {user && player.id !== user.id && (
-                        <Dialog
-                          onOpenChange={(isOpen) => {
-                            if (!isOpen) setSelectedPlayer(null);
-                          }}
-                        >
-                          <DialogTrigger asChild>
+            {loadingPlayers ? (
+              <PlayersTableSkeleton />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('table.player')}</TableHead>
+                    <TableHead className='text-center'>
+                      {t('table.point')}
+                    </TableHead>
+                    <TableHead className='text-center'>
+                      {t('table.transfer')}
+                    </TableHead>
+                    <TableHead className='text-center'>
+                      {t('table.history')}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {playersInfo.map((player: any) => (
+                    <TableRow key={player.id}>
+                      <TableCell>
+                        <div className='flex items-center gap-1'>
+                          <span className='font-medium'>{player.name}</span>
+                          {user?.id === player.id && (
                             <Button
                               variant='ghost'
                               size='icon'
-                              onClick={() => setSelectedPlayer(player)}
+                              onClick={() => handleEditClick(player)}
                             >
-                              <IconArrowRight className='h-4 w-4 text-blue-600' />
+                              <IconPencil className='h-4 w-4' />
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle className='text-left'>
-                                {t('table.transferTo', {
-                                  name: selectedPlayer?.name
-                                })}
-                              </DialogTitle>
-                            </DialogHeader>
-                            <div className='space-y-4'>
-                              <div className='space-y-2'>
-                                <Input
-                                  id='amount'
-                                  type='number'
-                                  inputMode='numeric'
-                                  pattern='[0-9]*'
-                                  value={transferAmount}
-                                  onChange={(e) =>
-                                    setTransferAmount(e.target.value)
-                                  }
-                                  placeholder={t('table.enterAmount')}
-                                />
-                              </div>
-                            </div>
-                            <DialogFooter>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className='text-center'>
+                        <span
+                          className={`font-medium ${
+                            (player.points || 0) > 0
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                          }`}
+                        >
+                          {player.points || 0}
+                        </span>
+                      </TableCell>
+                      <TableCell className='text-center'>
+                        {user && player.id !== user.id && (
+                          <Dialog
+                            onOpenChange={(isOpen) => {
+                              if (!isOpen) setSelectedPlayer(null);
+                            }}
+                          >
+                            <DialogTrigger asChild>
                               <Button
-                                onClick={handleTransfer}
-                                disabled={isTransferring}
+                                variant='ghost'
+                                size='icon'
+                                onClick={() => setSelectedPlayer(player)}
                               >
-                                {isTransferring
-                                  ? t('table.transferring')
-                                  : t('table.confirmTransfer')}
+                                <IconArrowRight className='h-4 w-4 text-blue-600' />
                               </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      )}
-                    </TableCell>
-                    <TableCell className='text-center'>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => handleViewHistory(player)}
-                        title={t('table.pointHistory')}
-                      >
-                        <IconHistory className='h-4 w-4 text-gray-600' />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle className='text-left'>
+                                  {t('table.transferTo', {
+                                    name: selectedPlayer?.name
+                                  })}
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className='space-y-4'>
+                                <div className='space-y-2'>
+                                  <Input
+                                    id='amount'
+                                    type='number'
+                                    inputMode='numeric'
+                                    pattern='[0-9]*'
+                                    value={transferAmount}
+                                    onChange={(e) =>
+                                      setTransferAmount(e.target.value)
+                                    }
+                                    placeholder={t('table.enterAmount')}
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button
+                                  onClick={handleTransfer}
+                                  disabled={isTransferring}
+                                >
+                                  {isTransferring
+                                    ? t('table.transferring')
+                                    : t('table.confirmTransfer')}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </TableCell>
+                      <TableCell className='text-center'>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          onClick={() => handleViewHistory(player)}
+                          title={t('table.pointHistory')}
+                        >
+                          <IconHistory className='h-4 w-4 text-gray-600' />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
@@ -587,9 +602,11 @@ export default function Page() {
             <div className='space-y-2 text-center'>
               <p className='text-muted-foreground text-sm'>
                 {t('table.title')}:{' '}
-                <span className='font-medium'>{table.name}</span>
+                <span className='font-medium'>{tableInfo?.name}</span>
               </p>
-              <p className='text-muted-foreground text-xs'>ID: {table.id}</p>
+              <p className='text-muted-foreground text-xs'>
+                ID: {tableInfo?.id}
+              </p>
             </div>
             <DialogFooter>
               <Button
@@ -688,13 +705,13 @@ export default function Page() {
           <Button
             variant='outline'
             onClick={handleRefresh}
-            disabled={loading}
+            disabled={loadingPlayers}
             className='flex items-center gap-2'
           >
             <IconRefresh
-              className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              className={`h-4 w-4 ${loadingPlayers ? 'animate-spin' : ''}`}
             />
-            {loading ? t('common.loading') : t('common.refresh')}
+            {loadingPlayers ? t('common.loading') : t('common.refresh')}
           </Button>
         </div>
       </div>
