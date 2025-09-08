@@ -115,10 +115,6 @@ export default function Page() {
 
     try {
       await joinTable(extractedTableId, user.id, user.token);
-      toast.success(t('messages.successfullyJoinedTable'));
-
-      // Đóng scanner và chuyển hướng
-      setScannerOpen(false);
 
       // Chuyển đến trang detail
       router.push(`/dashboard/table/${extractedTableId}`);

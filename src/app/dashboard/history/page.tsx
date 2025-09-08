@@ -40,7 +40,14 @@ export default function HistoryPage() {
         setLoading(true);
 
         const apiData = await getPlayerHistory(userId, token);
-        setHistory(apiData || []);
+        const sortedData = (apiData || []).sort(
+          (a: PlayerHistory, b: PlayerHistory) => {
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+            return dateB.getTime() - dateA.getTime(); // Sort newest first
+          }
+        );
+        setHistory(sortedData);
 
         // Fetch user names for creators
         if (apiData && apiData.length > 0) {

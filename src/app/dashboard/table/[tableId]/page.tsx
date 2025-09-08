@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Heading } from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -23,6 +22,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   getBatchUsers,
   getTableById,
@@ -51,7 +51,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function Page() {
   const params = useParams();
   const router = useRouter();
-  const { user, login, updateUser: updateUserInStore } = useAuthStore();
+  const { user, updateUser: updateUserInStore } = useAuthStore();
   const { t } = useLanguage();
   const [table, setTable] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +64,6 @@ export default function Page() {
   const [isTransferring, startTransferTransition] = useTransition();
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [isRefreshing, startRefreshTransition] = useTransition();
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [tableHistory, setTableHistory] = useState<any[]>([]);
   const [selectedPlayerForHistory, setSelectedPlayerForHistory] =
@@ -226,9 +225,7 @@ export default function Page() {
   };
 
   const handleRefresh = () => {
-    startRefreshTransition(() => {
-      window.location.reload();
-    });
+    fetchTableAndPlayers();
   };
 
   const handleViewHistory = async (player: any) => {
@@ -256,16 +253,103 @@ export default function Page() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div>{t('common.loading')}</div>
-      </PageContainer>
-    );
-  }
+      <PageContainer scrollable>
+        <div className='flex-1 space-y-6'>
+          <div className='flex items-center gap-3'>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={() => router.push('/dashboard/table')}
+            >
+              <IconArrowLeft className='h-4 w-4' />
+            </Button>
+            <Skeleton className='h-8 w-48' />
+          </div>
 
-  if (!user) {
-    return (
-      <PageContainer>
-        <div>{t('common.loading')}</div>
+          {/* Invite Players Section - Show normally */}
+          <Card className='py-4'>
+            <CardContent className='px-4'>
+              <div className='mb-4 flex items-center gap-3'>
+                <IconUsers className='h-5 w-5 text-blue-600' />
+                <h3 className='text-lg font-semibold'>
+                  {t('table.invitePlayers')}
+                </h3>
+              </div>
+              <p className='text-muted-foreground mb-4 text-sm'>
+                {t('table.inviteDescription')}
+              </p>
+              <div className='flex gap-3'>
+                <Button
+                  variant='outline'
+                  disabled
+                  className='flex flex-1 items-center justify-center gap-2'
+                >
+                  <IconCopy className='h-4 w-4' />
+                  <span className='hidden sm:inline'>
+                    {t('table.copyTableId')}
+                  </span>
+                  <span className='sm:hidden'>Copy ID</span>
+                </Button>
+                <Button
+                  variant='outline'
+                  disabled
+                  className='flex flex-1 items-center justify-center gap-2'
+                >
+                  <IconQrcode className='h-4 w-4' />
+                  <span className='hidden sm:inline'>
+                    {t('table.showQrCode')}
+                  </span>
+                  <span className='sm:hidden'>QR Code</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Table Skeleton */}
+          <Card className='py-2'>
+            <CardContent className='px-2'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <Skeleton className='h-4 w-16' />
+                    </TableHead>
+                    <TableHead className='text-center'>
+                      <Skeleton className='mx-auto h-4 w-12' />
+                    </TableHead>
+                    <TableHead className='text-center'>
+                      <Skeleton className='mx-auto h-4 w-16' />
+                    </TableHead>
+                    <TableHead className='text-center'>
+                      <Skeleton className='mx-auto h-4 w-14' />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...Array(3)].map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className='flex items-center gap-1'>
+                          <Skeleton className='h-4 w-24' />
+                          <Skeleton className='h-8 w-8 rounded' />
+                        </div>
+                      </TableCell>
+                      <TableCell className='text-center'>
+                        <Skeleton className='mx-auto h-4 w-8' />
+                      </TableCell>
+                      <TableCell className='text-center'>
+                        <Skeleton className='mx-auto h-8 w-8 rounded' />
+                      </TableCell>
+                      <TableCell className='text-center'>
+                        <Skeleton className='mx-auto h-8 w-8 rounded' />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </PageContainer>
     );
   }
@@ -395,20 +479,14 @@ export default function Page() {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>
-                                {t('table.transferPoints')}
-                              </DialogTitle>
-                              <DialogDescription>
+                              <DialogTitle className='text-left'>
                                 {t('table.transferTo', {
                                   name: selectedPlayer?.name
                                 })}
-                              </DialogDescription>
+                              </DialogTitle>
                             </DialogHeader>
-                            <div className='space-y-4 py-4'>
+                            <div className='space-y-4'>
                               <div className='space-y-2'>
-                                <Label htmlFor='amount'>
-                                  {t('table.amount')}
-                                </Label>
                                 <Input
                                   id='amount'
                                   type='number'
@@ -457,14 +535,12 @@ export default function Page() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('table.editName')}</DialogTitle>
-              <DialogDescription>
-                {t('table.updateDisplayName')}
-              </DialogDescription>
+              <DialogTitle className='text-left'>
+                {t('table.editName')}
+              </DialogTitle>
             </DialogHeader>
-            <div className='space-y-4 py-4'>
+            <div className='space-y-4'>
               <div className='space-y-2'>
-                <Label htmlFor='name'>{t('table.name')}</Label>
                 <Input
                   id='name'
                   value={editingPlayerName}
@@ -473,14 +549,12 @@ export default function Page() {
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className='flex-row gap-2'>
               <Button
-                variant='outline'
-                onClick={() => setEditDialogOpen(false)}
+                onClick={handleUpdatePlayerName}
+                disabled={isUpdating}
+                className='flex-1'
               >
-                {t('common.cancel')}
-              </Button>
-              <Button onClick={handleUpdatePlayerName} disabled={isUpdating}>
                 {isUpdating ? t('table.saving') : t('table.saveChanges')}
               </Button>
             </DialogFooter>
@@ -614,13 +688,13 @@ export default function Page() {
           <Button
             variant='outline'
             onClick={handleRefresh}
-            disabled={isRefreshing}
+            disabled={loading}
             className='flex items-center gap-2'
           >
             <IconRefresh
-              className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+              className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
             />
-            {isRefreshing ? t('common.loading') : t('common.refresh')}
+            {loading ? t('common.loading') : t('common.refresh')}
           </Button>
         </div>
       </div>
