@@ -24,9 +24,20 @@ const QRScanner = ({
   const [isLoadingQR, setIsLoadingQR] = useState(false); // Loading state riêng cho việc xử lý QR
 
   const startScanner = async () => {
+    let deviceId: string | MediaTrackConstraints | undefined = undefined;
     try {
       // Kiểm tra quyền camera trước
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      const videoTracks = stream.getVideoTracks();
+      const videoSettings = videoTracks[0].getSettings();
+      deviceId = videoSettings.deviceId;
+
       stream.getTracks().forEach((track) => track.stop());
       setHasPermission(true);
     } catch (error) {
@@ -46,11 +57,9 @@ const QRScanner = ({
     scannerRef.current = scanner;
 
     try {
-      // Thử lấy danh sách cameras trước
-      const cameras = await Html5Qrcode.getCameras();
-
-      // Sử dụng camera đầu tiên có sẵn
-      const cameraId = cameras.length > 0 ? cameras[1].id : 'environment';
+      // const cameras = await Html5Qrcode.getCameras();
+      // const cameraId = cameras.length > 0 ? cameras[0].id : 'environment';
+      const cameraId = deviceId || { facingMode: 'environment' };
 
       await scanner.start(
         cameraId,
